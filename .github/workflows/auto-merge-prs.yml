@@ -1,0 +1,94 @@
+name: Auto-merge PRs into default branch
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  issues: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Try auto-merge PR into default branch
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.info('No pull_request in payload; exiting.');
+              return;
+            }
+
+            const pr_number = pr.number;
+            const defaultBranch = context.payload.repository.default_branch;
+
+            // Only auto-merge if the PR targets the default branch
+            if (pr.base.ref !== defaultBranch) {
+              core.info(`PR base is ${pr.base.ref}, not default (${defaultBranch}); exiting.`);
+              return;
+            }
+
+            // Poll until GitHub computes mergeable (mergeable can be null initially)
+            const maxAttempts = 20;
+            let attempt = 0;
+            while (attempt < maxAttempts) {
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr_number
+              });
+
+              // data.mergeable: true/false/null
+              if (data.mergeable === true) {
+                try {
+                  await github.rest.pulls.merge({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: pr_number,
+                    merge_method: 'merge',
+                    commit_title: `Auto-merge PR #${pr_number}: ${data.title}`
+                  });
+                  core.info(`Merged PR #${pr_number} into ${defaultBranch}`);
+                  return;
+                } catch (mergeErr) {
+                  core.warning(`Merge API failed: ${mergeErr.message}`);
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr_number,
+                    body: `Automatic merge failed when calling merge API:\n\n${mergeErr.message}\n\nPlease resolve conflicts or required checks and merge manually.`
+                  });
+                  core.setFailed(`Merge failed: ${mergeErr.message}`);
+                  return;
+                }
+              } else if (data.mergeable === false) {
+                core.warning(`PR #${pr_number} is not mergeable (state: ${data.mergeable_state}).`);
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr_number,
+                  body: `Automatic merge aborted: PR is not mergeable (state: ${data.mergeable_state}). Please resolve conflicts or required checks and merge manually.`
+                });
+                core.setFailed('Not mergeable');
+                return;
+              } else {
+                // mergeable === null -> still computing
+                attempt++;
+                core.info(`mergeable is null, waiting 3s (attempt ${attempt}/${maxAttempts})`);
+                await new Promise(r => setTimeout(r, 3000));
+              }
+            }
+
+            // Timed out waiting for mergeable
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr_number,
+              body: `Automatic merge timed out while waiting for mergeability to be calculated. Please check the PR and merge manually if possible.`
+            });
+            core.setFailed('Timed out waiting for mergeable state.');
