@@ -1,9 +1,10 @@
 #!/bin/bash
-# This is a distribution plug-in for Ubuntu 24.04 LTS (Noble Numbat).
+# Distribution plug-in for Ubuntu 24.04 LTS (Noble Numbat)
 # Auto-generated on 2026-09-01T22:05:00Z
 
 DISTRO_NAME="Ubuntu 24.04.4 LTS"
 DISTRO_COMMENT="Ubuntu Base official rootfs from cdimage.ubuntu.com"
+DISTRO_ICON="🟠"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
@@ -20,8 +21,54 @@ TARBALL_SHA256['x86_64']="c1e67ef7b17a6300e136118bd1dc04725009cb376c1aad10abcf8c
 TARBALL_URL['riscv64']="http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-riscv64.tar.gz"
 TARBALL_SHA256['riscv64']="1b3cdb6a9c2370491584313b79e35838eaec0ec6a8d6b67f3ffff578c34cce2d"
 
-# Generate runtime bootstrap script and configuration metadata
-cat <<'EOF' > bootstrap.sh
+TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+
+if [ -z "$TARBALL_URL" ]; then
+    echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
+    exit 1
+fi
+
+mkdir -p "$DISTRO_ROOTFS"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.gz"
+echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
+    echo "ERROR: Download failed from $TARBALL_URL" >&2
+    exit 1
+}
+
+if [ -n "$TARBALL_SHA256" ]; then
+    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+        echo "ERROR: SHA256 mismatch" >&2
+        rm -f "$TMP_TARBALL"
+        exit 1
+    }
+fi
+
+echo "Extracting rootfs..."
+case "$TMP_TARBALL" in
+    *.tar.xz|*.txz)
+        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        ;;
+    *.tar.bz2|*.tbz2)
+        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        ;;
+    *.tar.gz|*.tgz)
+        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        ;;
+    *.tar)
+        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        ;;
+    *)
+        echo "ERROR: Unknown archive format: $TMP_TARBALL" >&2
+        rm -f "$TMP_TARBALL"
+        exit 1
+        ;;
+esac
+
+rm -f "$TMP_TARBALL"
+
+cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 #!/bin/bash
 # ==============================================================================
 # RUNTIME & BOOTSTRAP CONFIGURATION
@@ -35,17 +82,43 @@ cat <<'EOF' > bootstrap.sh
 #   3. useradd -m -s /bin/bash ubuntu
 # LIMITATIONS / KNOWN ISSUES:
 #   - systemd / init system services cannot run as real PID 1 inside PRoot.
-#   - Set PATH explicitly in subshells.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Setup resolv.conf if missing or invalid
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-# Update package repository index
-apt-get update
-EOF
+apt-get update && apt-get upgrade -y
+BOOTSTRAP_EOF
 
-chmod +x bootstrap.sh
+chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
+
+mkdir -p "$DISTRO_ROOTFS/root"
+cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
+#!/bin/sh
+# Entrypoint for Ubuntu in PRoot
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
+    echo "[*] Running first-boot bootstrap..."
+    sh /bootstrap.sh
+    touch /bootstrap.done
+fi
+
+exec /bin/bash --login
+ENTRYPOINT_EOF
+
+chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
+image=local-script
+pulled_at=$(date +%s)
+source=local-script
+script=$(basename "$0")
+MARKER_EOF
+
+echo "$DISTRO_NAME rootfs prepared at: $DISTRO_ROOTFS"
+echo "To boot: nh boot docker $(basename "$DISTRO_ROOTFS")"
+exit 0
