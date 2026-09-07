@@ -39,16 +39,16 @@ fi
 echo "Extracting rootfs..."
 case "$TMP_TARBALL" in
     *.tar.xz|*.txz)
-        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
         ;;
     *.tar.bz2|*.tbz2)
-        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
         ;;
     *.tar.gz|*.tgz)
-        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
         ;;
     *.tar)
-        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
+        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
         ;;
     *)
         echo "ERROR: Unknown archive format: $TMP_TARBALL" >&2
