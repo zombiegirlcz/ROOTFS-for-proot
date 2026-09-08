@@ -9,11 +9,11 @@ DISTRO_ICON="🌌"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/voidlinux/current/amd64/default/20260901_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="09d37716d6d6f48f625001899b4a816359079001ef11e3ffae065c4f74208248"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/voidlinux/current/amd64/default/20260908_17%3A10/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="4b2935cb72dfd6f585a18c0d423cc0ce478837aaa0da9c01aa9ed948b96598d3"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/voidlinux/current/arm64/default/20260901_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="dd346686b3904f254b8fa3382be160268dccaff4be88879a6a49a68989491226"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/voidlinux/current/arm64/default/20260908_17%3A10/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="0a937bdc91d402f0d480cb8df6731a6b2a00b6d52b9c9d97d0edf4a440129e49"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

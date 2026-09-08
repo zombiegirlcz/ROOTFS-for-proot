@@ -1,25 +1,19 @@
 #!/bin/bash
-# Distribution plug-in for Ubuntu 24.04 LTS (Noble Numbat)
-# Auto-generated on 2026-09-01T22:05:00Z
+# Distribution plug-in for Ubuntu 24.04 (Noble Numbat)
+# Auto-generated on 2026-09-09T22:15:00Z
 
-DISTRO_NAME="Ubuntu 24.04.4 LTS"
-DISTRO_COMMENT="Ubuntu Base official rootfs from cdimage.ubuntu.com"
-DISTRO_ICON="🟠"
+DISTRO_NAME="Ubuntu 24.04"
+DISTRO_COMMENT="Ubuntu official cloud image rootfs"
+DISTRO_ICON="🐧"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-arm64.tar.gz"
-TARBALL_SHA256['aarch64']="04207713ece899c3740823d33690441ad3a7f0ded1101aca744e2b0f37ac7ff2"
+TARBALL_URL['x86_64']="https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64-root.tar.xz"
+TARBALL_SHA256['x86_64']="094dc0afc6ded1c3e5ce71f7d0b48d5db922155097bc8fb1ec19db2ebdd17ece"
 
-TARBALL_URL['arm']="http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-armhf.tar.gz"
-TARBALL_SHA256['arm']="991520b47f6586f38a78505cf016e300b6191bb8ff86a0723481ec23a37ab7f4"
-
-TARBALL_URL['x86_64']="http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-amd64.tar.gz"
-TARBALL_SHA256['x86_64']="c1e67ef7b17a6300e136118bd1dc04725009cb376c1aad10abcf8cd453628d58"
-
-TARBALL_URL['riscv64']="http://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.4-base-riscv64.tar.gz"
-TARBALL_SHA256['riscv64']="1b3cdb6a9c2370491584313b79e35838eaec0ec6a8d6b67f3ffff578c34cce2d"
+TARBALL_URL['aarch64']="https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-arm64-root.tar.xz"
+TARBALL_SHA256['aarch64']="e3ebf31fd82cf2a3cefb513b33fc03f723b4929a468cea4053e15a2d7466a9c7"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -30,7 +24,7 @@ if [ -z "$TARBALL_URL" ]; then
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
-TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.gz"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
 curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
     echo "ERROR: Download failed from $TARBALL_URL" >&2
