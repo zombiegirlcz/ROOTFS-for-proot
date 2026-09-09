@@ -288,5 +288,7 @@ Each script MUST follow this exact format:
 Never hardcode paths. Always use $DISTRO_ROOTFS, $DISTRO_ARCH, and other provided env vars.
 The app handles booting after the script exits 0.
 
+10. **Before committing, verify that all TARBALL_URL values are valid and current.** Check each URL with `curl -L -o /dev/null -s -w "%{http_code}"` and only keep URLs that return HTTP 200. Update stale URLs and recompute matching SHA256 checksums.
+
 9. **Add exactly one new distro plug-in every day** when working on this repository. Each new plug-in must be a complete, working script following the format above, added as a new `.sh` file in the repository.
 ```
