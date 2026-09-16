@@ -1,20 +1,27 @@
 #!/bin/bash
 # Distribution plug-in for Void Linux
-# Auto-generated on 2026-09-01T22:15:00Z
+# Auto-generated on 2026-09-17T00:00:00Z
 
 DISTRO_NAME="Void Linux"
-DISTRO_COMMENT="Void Linux official LXC rootfs"
+DISTRO_COMMENT="Void Linux official rootfs from repo-default.voidlinux.org"
 DISTRO_ICON="🌌"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/voidlinux/current/amd64/default/20260908_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="4b2935cb72dfd6f585a18c0d423cc0ce478837aaa0da9c01aa9ed948b96598d3"
+TARBALL_URL['aarch64']="https://repo-default.voidlinux.org/live/current/void-aarch64-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['aarch64']="01a30f17ae06d4d5b322cd579ca971bc479e02cc284ec1e5a4255bea6bac3ce6"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/voidlinux/current/arm64/default/20260908_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="0a937bdc91d402f0d480cb8df6731a6b2a00b6d52b9c9d97d0edf4a440129e49"
+TARBALL_URL['arm']="https://repo-default.voidlinux.org/live/current/void-armv7l-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['arm']="1b8911b43c0dc35ad56c158e06a277ccf0cabe94dcdde4d5a05771a48a621edc"
 
+TARBALL_URL['x86_64']="https://repo-default.voidlinux.org/live/current/void-x86_64-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['x86_64']="3f48e6673ac5907a897d913c97eb96edbfb230162731b4016562c51b3b8f1876"
+
+TARBALL_URL['x86']="https://repo-default.voidlinux.org/live/current/void-i686-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['x86']="58f473aa61776f080e0c2c3d4e6066c812dc8052603ddfa09bf20462d3e11950"
+
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
