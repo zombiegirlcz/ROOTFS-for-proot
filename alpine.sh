@@ -2,27 +2,27 @@
 # Distribution plug-in for Alpine Linux
 # Auto-generated on 2026-09-01T21:58:00Z
 
-DISTRO_NAME="Alpine Linux 3.20.3"
+DISTRO_NAME="Alpine Linux 3.20.9"
 DISTRO_COMMENT="Alpine Linux official minirootfs from dl-cdn.alpinelinux.org"
 DISTRO_ICON="🏔️"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/alpine-minirootfs-3.20.3-aarch64.tar.gz"
-TARBALL_SHA256['aarch64']="041fa34a81788242df9e78fa69b97ab45b8ec47ddbf88864755610414a7bf3de"
+TARBALL_URL['aarch64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/aarch64/alpine-minirootfs-3.20.9-aarch64.tar.gz"
+TARBALL_SHA256['aarch64']="7e8b4adbf33b1363b90b50e614bbe7bf3d2c8863f9f1718cbc65a883b27c2f43"
 
-TARBALL_URL['arm']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/armv7/alpine-minirootfs-3.20.3-armv7.tar.gz"
-TARBALL_SHA256['arm']="ea8823fb4c4cf5f71f1d180e47904fb36ae74d3ded06c980230116b129fc5f07"
+TARBALL_URL['arm']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/armv7/alpine-minirootfs-3.20.9-armv7.tar.gz"
+TARBALL_SHA256['arm']="717bb0fab85b7db95e0b856bd3582db2e7acfef963843c1d5d623153e265a122"
 
-TARBALL_URL['x86_64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-minirootfs-3.20.3-x86_64.tar.gz"
-TARBALL_SHA256['x86_64']="d4e6fd67dcf75e40c451560ac7265166c2b72a0f38ddc9aae756a7de3d1efa0c"
+TARBALL_URL['x86_64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-minirootfs-3.20.9-x86_64.tar.gz"
+TARBALL_SHA256['x86_64']="ad094d86f5ae5189d4236524e8ebe042c42b3d4d8555825664cea34e103886ff"
 
-TARBALL_URL['x86']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86/alpine-minirootfs-3.20.3-x86.tar.gz"
-TARBALL_SHA256['x86']="4c7ba1c9e6642692dd5cb302e5e58943221901f2e15991af7d5cb4ded80dc7b9"
+TARBALL_URL['x86']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86/alpine-minirootfs-3.20.9-x86.tar.gz"
+TARBALL_SHA256['x86']="80f170036c4c546fd7e69482e526fd929033480f182f97f87a1f03405bb85f99"
 
-TARBALL_URL['riscv64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/riscv64/alpine-minirootfs-3.20.3-riscv64.tar.gz"
-TARBALL_SHA256['riscv64']="290d402a3e2770a74e86caf1e43205dbf337b9aec1610c6c6d8ffbd2d52796a1"
+TARBALL_URL['riscv64']="https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/riscv64/alpine-minirootfs-3.20.9-riscv64.tar.gz"
+TARBALL_SHA256['riscv64']="66d6af4928d60b0d2aa65f1be1efd5ecab205c2f58d49602f7696641177ef1f8"
 
 # Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
