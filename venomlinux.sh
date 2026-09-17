@@ -1,24 +1,19 @@
 #!/bin/bash
-# Distribution plug-in for Gentoo Linux
-# Auto-generated on 2026-09-03T22:15:00Z
+# Distribution plug-in for Venom Linux
+# Auto-generated on 2026-09-17T00:00:00Z
 
-DISTRO_NAME="Gentoo Linux"
-DISTRO_COMMENT="Gentoo official LXC rootfs"
-DISTRO_ICON="🎷"
+DISTRO_NAME="Venom Linux"
+DISTRO_COMMENT="Source-based Linux distribution with scratchpkg package manager"
+DISTRO_ICON="🐍"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a9cbeda7f33fc76769a48955cfca96a09d01865421aff7772f7a2b0e0f2e41f"
+TARBALL_URL['x86_64']="https://github.com/venomlinux/ports/releases/download/20240123/venomlinux-rootfs-x86_64.tar.xz"
+TARBALL_SHA256['x86_64']="e92822c197b8e6bd4f60931d31ebf73ac66fbdd07f3386aad25cd1ba047d156a"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="5615b54e1da2dc9891cc4bad8d5b79285bbf9cbbde7e9c0fba20c5c8fc0f2f3b"
-
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="c481dbde2fa90a889fe0730b0a86627d6f896122244f8eeac286fa4a11ba1df0"
-
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+# Detect best URL for current arch
+TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
 if [ -z "$TARBALL_URL" ]; then
@@ -74,10 +69,10 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. emerge-webrsync / emerge --sync
+#   1. scratch sync
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers and OpenRC service manager.
+#   - PRoot syscall limitations for unprivileged containers.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -85,7 +80,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-emerge-webrsync
+scratch sync || true
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -93,7 +88,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Gentoo Linux in PRoot
+# Entrypoint for Venom Linux in PRoot
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -103,7 +98,11 @@ if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
     touch /bootstrap.done
 fi
 
-exec /bin/bash --login
+if [ -x /bin/bash ]; then
+    exec /bin/bash --login
+else
+    exec /bin/sh --login
+fi
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
