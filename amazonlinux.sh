@@ -9,11 +9,11 @@ DISTRO_ICON="📦"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260909_05%3A09/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="e0addd3ef9f20a884eabd724530ac48cff9e490359f62d667084484c1e196a0c"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260917_05%3A09/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="8fdd802f709d5d97f6c6766dfe3fe51d6b7b608d88c67717d708140c1eebadef"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260909_05%3A09/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="e0addd3ef9f20a884eabd724530ac48cff9e490359f62d667084484c1e196a0c"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260917_05%3A09/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="8fdd802f709d5d97f6c6766dfe3fe51d6b7b608d88c67717d708140c1eebadef"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

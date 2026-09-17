@@ -1,20 +1,27 @@
 #!/bin/bash
-# Distribution plug-in for Fedora 43
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Adélie Linux
+# Auto-generated on 2026-09-13T04:30:00Z
 
-DISTRO_NAME="Fedora 43"
-DISTRO_COMMENT="Fedora official LXC rootfs"
-DISTRO_ICON="🧢"
+DISTRO_NAME="Adélie Linux 1.0-BETA6"
+DISTRO_COMMENT="Adélie Linux official mini rootfs (musl/APK/openrc)"
+DISTRO_ICON="🐧"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20260917_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="1b70690bc42f595f1f6583a67e40995602a32b888b29923359480ed6bace7b52"
+TARBALL_URL['aarch64']="https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-mini-aarch64-1.0-beta6-20241223.txz"
+TARBALL_SHA256['aarch64']="1899df20963fadb293f0d6e4e0b0b7c4558c0402f6571ababcd58da04db732d8"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20260917_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="ecddd73b2c4a1f293288ee2b847520fd297291212c8bbeff9272eca55524a614"
+TARBALL_URL['arm']="https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-mini-armv7-1.0-beta6-20241223.txz"
+TARBALL_SHA256['arm']="2bff959f1bec4d677a97443d318435710de508ebb29d11111e8b10609591545d"
 
+TARBALL_URL['x86_64']="https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-mini-x86_64-1.0-beta6-20241223.txz"
+TARBALL_SHA256['x86_64']="40ea53b85cd3c784f7607b787a09416a9754b60d67a281f2549b4cc95e69fac4"
+
+TARBALL_URL['x86']="https://distfiles.adelielinux.org/adelie/1.0-beta6/iso/adelie-rootfs-mini-pmmx-1.0-beta6-20241223.txz"
+TARBALL_SHA256['x86']="bb6ca44cfa981ab9ce3b55736c9bc1aad6d2b7fa640727569c19d104e7bd9f8b"
+
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
@@ -71,10 +78,11 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. dnf update -y
+#   1. apk update && apk upgrade
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers.
+#   - PRoot cannot mimic full Linux kernel syscalls
+#   - OpenRC services do not run as real PID 1 inside PRoot.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -82,7 +90,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+apk update && apk upgrade
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,7 +98,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Fedora in PRoot
+# Entrypoint for Adélie Linux in PRoot
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -100,7 +108,7 @@ if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
     touch /bootstrap.done
 fi
 
-exec /bin/bash --login
+exec /bin/sh --login
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
