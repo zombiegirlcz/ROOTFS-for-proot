@@ -9,17 +9,17 @@ DISTRO_ICON="🏹"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/archlinux/current/amd64/default/20260916_04%3A54/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="0236c467d1031616a429a2f9cfe4b1d548035139911d32eed8ef6f4705af6cd4"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/archlinux/current/amd64/default/20260919_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="76598b706c21da04268e04fc072ab0b7034d2839f6f031b3644b8b84b3d60ebf"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20260916_04%3A38/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="1cbfb96f3e99db08ec74ca739aa30a9105ada4bfceb319dc1d49ab0d516bf5db"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20260919_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="e87cc0e0a17a63431425b9081d692df2fa965c1ae2a3c7100ade6436566cf580"
 
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/archlinux/current/loong64/default/20260916_04%3A47/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="e4518e6094293f3d59d6f73b6878992cf62075f715b55b3311fb09aa9675b141"
+TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/archlinux/current/loong64/default/20260919_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['loong64']="d2bd1583989c8cc4dce2af4b8e2f4d3077ee841865b5926f3affd3823490e7e4"
 
-TARBALL_URL['riscv64']="https://images.linuxcontainers.org/images/archlinux/current/riscv64/default/20260916_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['riscv64']="e915dbaf6a05bdf7d4585bcf50a66502b4264b5101aa5fe9c26d2f5916e3c57b"
+TARBALL_URL['riscv64']="https://images.linuxcontainers.org/images/archlinux/current/riscv64/default/20260919_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['riscv64']="f8f48dee74a9e830db6219a4567eef3f05cf06b7889016779285aab6d5314fd0"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

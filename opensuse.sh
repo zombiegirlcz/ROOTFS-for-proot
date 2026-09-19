@@ -9,11 +9,11 @@ DISTRO_ICON="🦎"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260916_05%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="bfa38c763d3e32f99df11961d71798f4b72f2ae4a15b4aacfa3cc6ffe8de7cb2"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260919_04%3A20/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="4303a1f73b67608ea7cc839a53f17ac284f9f0d988d76b41757c6c2ac7217324"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260916_14%3A10/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="3ab505d09a3d09963d57f2375ac9f098ca6ccd1b8dfd69ca99c7c006b4df8112"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260919_04%3A20/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="1a67c56cea3bc8032f772454fd1c86224c416871fd40ee565b4e438066f8f420"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

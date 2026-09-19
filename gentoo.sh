@@ -9,14 +9,14 @@ DISTRO_ICON="🎷"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a9cbeda7f33fc76769a48955cfca96a09d01865421aff7772f7a2b0e0f2e41f"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20260919_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="e57cd543c3d940c5e92ee24aea52c0b3930ab989b8e8e35b943fd2015abc3262"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="5615b54e1da2dc9891cc4bad8d5b79285bbf9cbbde7e9c0fba20c5c8fc0f2f3b"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20260919_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="99abde62879632243917da1f7ac58e3e136ef4de24388b26cc70fd69d9bc2b03"
 
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20260916_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="c481dbde2fa90a889fe0730b0a86627d6f896122244f8eeac286fa4a11ba1df0"
+TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20260919_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['loong64']="3426907cddad1173fd6e16a8b28f3267ac9301cd555fcd3469f48b8fa91245f3"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
