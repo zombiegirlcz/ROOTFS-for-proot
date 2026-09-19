@@ -9,11 +9,11 @@ DISTRO_ICON="🧢"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20260916_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="80347a4ef2efa0f2ec51703cc7dff0c952bce18039205d58e504b894c8d9a2d2"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20260919_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="d1287b811f50db6fc04474ac741e713317436bebdc985e4c41432cbeaecf3a25"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20260916_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="b972d6f8b19be1e3205a695afc7b3142bb3125f840ed29d3d890e45627e1236c"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20260919_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="bdeb3cda06c096732c1d76d4f3d3f913729ea64d9d01a7034f4c6f46ca92d455"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
