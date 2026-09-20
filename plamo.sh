@@ -9,8 +9,8 @@ DISTRO_ICON="🗡️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/plamo/8.x/amd64/default/20260917_01%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="45abf76159cd63a3f274f882bcd18b61bf88ae02a7ad38b39446952fb8c1c778"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/plamo/8.x/amd64/default/20260920_01%3A33/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="336616fb56af29d0b4fd0423071081b2be60daa8af0d4005f2c6293c9091d6ef"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
