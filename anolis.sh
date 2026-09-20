@@ -1,20 +1,24 @@
 #!/bin/bash
-# Distribution plug-in for Rocky Linux 9
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Anolis OS (OpenAnolis)
+# Auto-generated on 2026-09-20T04:30:00Z
 
-DISTRO_NAME="Rocky Linux 9"
-DISTRO_COMMENT="Rocky Linux official LXC rootfs"
-DISTRO_ICON="🏔️"
+DISTRO_NAME="Anolis OS 8.10"
+DISTRO_COMMENT="Anolis OS official container rootfs (OpenAnolis)"
+DISTRO_ICON="🐉"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/rockylinux/9/amd64/default/20260920_02%3A06/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="59779beaf9247eecc8a48bef6281adeda0a95e860ab2e97a9b97a38ed841c8f4"
+TARBALL_URL['aarch64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/aarch64/AnolisOS-8.10-aarch64-docker.tar"
+TARBALL_SHA256['aarch64']="9fbf6c62a7114418f6191000962f8dbd29b3418e67923500d013a44b71bed8a2"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/rockylinux/9/arm64/default/20260920_02%3A06/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="9009dfb9bb93e5035e1a9d925bef2a75a58821db1fb67bf0820c83ec6eb9b846"
+TARBALL_URL['x86_64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/x86_64/AnolisOS-8.10-x86_64-docker.tar"
+TARBALL_SHA256['x86_64']="2351fa94407663a1c76837237f632ae07cf69abd79c5669dd5660ddcf985680b"
 
+TARBALL_URL['loongarch64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/loongarch64/AnolisOS-8.10-loongarch64-docker.tar"
+TARBALL_SHA256['loongarch64']="cf6947b7fee844de833f9980c68be650bd8f42a306f85e40c6ce5ff6775003c9"
+
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
@@ -24,7 +28,7 @@ if [ -z "$TARBALL_URL" ]; then
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
-TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
 curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
     echo "ERROR: Download failed from $TARBALL_URL" >&2
@@ -63,18 +67,18 @@ esac
 rm -f "$TMP_TARBALL"
 
 cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
-#!/bin/sh
-#  =============================================================================
+#!/bin/bash
+# ==============================================================================
 # RUNTIME & BOOTSTRAP CONFIGURATION
 # ==============================================================================
-# ENTRYPOINT: /bin/sh
+# ENTRYPOINT: /bin/bash
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
 #   1. dnf update -y
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers.
+#   - systemd / init system services cannot run as real PID 1 inside PRoot.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -90,7 +94,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Rocky Linux in PRoot
+# Entrypoint for Anolis OS in PRoot
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
