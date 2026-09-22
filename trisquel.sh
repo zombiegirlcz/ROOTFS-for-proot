@@ -1,20 +1,21 @@
 #!/bin/bash
-# Distribution plug-in for Rocky Linux 9
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Trisquel GNU/Linux 11.0.1 (Aramo)
+# Auto-generated on 2026-09-22T00:00:00Z
 
-DISTRO_NAME="Rocky Linux 9"
-DISTRO_COMMENT="Rocky Linux official LXC rootfs"
-DISTRO_ICON="🏔️"
+DISTRO_NAME="Trisquel GNU/Linux 11.0.1 (Aramo)"
+DISTRO_COMMENT="Trisquel official base rootfs from cdimage.trisquel.info"
+DISTRO_ICON="🛡️"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/rockylinux/9/amd64/default/20260922_02%3A06/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="5b481026867bbabb6085a693b506b5ab763dfefbe407a3a156865d5af55fc18e"
+TARBALL_URL['aarch64']="https://cdimage.trisquel.info/trisquel-images/trisquel-base_11.0.1_arm64.tar.bz2"
+TARBALL_SHA256['aarch64']="b4427526326ba33ad0f7766c5e43772fdaa80511b61369b53ec36d7b148a0f15"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/rockylinux/9/arm64/default/20260922_02%3A06/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="bab4b212ca8e1c24bacdf4276549548bc3b5770e36d70b568c384a4a76f275f9"
+TARBALL_URL['arm']="https://cdimage.trisquel.info/trisquel-images/trisquel-base_11.0.1_armhf.tar.bz2"
+TARBALL_SHA256['arm']="cb85ba447c6ff842b153fc4f9f5512fd202b73d557ffaffe4c0a907755b4d4e5"
 
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
@@ -24,7 +25,7 @@ if [ -z "$TARBALL_URL" ]; then
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
-TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.bz2"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
 curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
     echo "ERROR: Download failed from $TARBALL_URL" >&2
@@ -71,10 +72,10 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. dnf update -y
+#   1. apt-get update && apt-get upgrade -y
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers.
+#   - PRoot cannot mimic full Linux kernel syscalls
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -82,7 +83,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+apt-get update && apt-get upgrade -y
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,7 +91,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Rocky Linux in PRoot
+# Entrypoint for Trisquel GNU/Linux in PRoot
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
