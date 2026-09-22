@@ -9,8 +9,8 @@ DISTRO_ICON="🍃"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/mint/wilma/amd64/default/20260919_08%3A51/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="28d19918058a52942e82e7f6160dd887ea72b3ba425b9bd018baaafcfc166669"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/mint/wilma/amd64/default/20260922_08%3A59/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="ab21619b26e9f2236a06ab866d508d90e6a7e11391a6e918f39e087c279044b7"
 
 # Detect best URL for current arch
 SELECTED_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
