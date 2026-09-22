@@ -2,18 +2,18 @@
 # Distribution plug-in for OpenWrt 24.10
 # Auto-generated on 2026-09-01T22:15:00Z
 
-DISTRO_NAME="OpenWrt 24.10"
+DISTRO_NAME="OpenWrt 25.12"
 DISTRO_COMMENT="OpenWrt official LXC rootfs"
 DISTRO_ICON="🌐"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/24.10/amd64/default/20260906_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8b1e0db9ac9fdfc77a15e83d458837592cf387cd45b92290bc0529bfa9a0e43d"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20260922_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="19f36fa4fc72dfc16fb06a84c16140eec47ecd8a0def3066babee80b8fa77bdf"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/24.10/arm64/default/20260906_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="d3400776300176ae4b21781171cc128095ea3e5b25cd772d52f169d84f4c4181"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20260922_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="c08cd1e2138e36a4cd4802cfc8c50c33f2f870e9b5474f5223f8fe5782d244f5"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
