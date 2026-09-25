@@ -9,11 +9,8 @@ DISTRO_ICON="❄️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://hydra.nixos.org/job/nix/master/binaryTarball.aarch64-linux/latest/download/1"
-TARBALL_SHA256['aarch64']="dbd5b8fe7a7e9c7e3c08aef407224e7113282787e6c2e63152545b69e59c429a"
-
-TARBALL_URL['x86_64']="https://hydra.nixos.org/job/nix/master/binaryTarball.x86_64-linux/latest/download/1"
-TARBALL_SHA256['x86_64']="a807237fb850037a86b96b56668eaa8d27414555732dd0c69d0640751aefc915"
+# Nix binary tarballs do not end with a supported tarball extension (.tar.xz/.tar.gz)
+# and are installer tarballs, so no direct rootfs tarball is offered by the app.
 
 # Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"

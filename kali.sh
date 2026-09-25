@@ -9,11 +9,11 @@ DISTRO_ICON="🐉"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/kali/current/amd64/default/20260922_17%3A14/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="9a3ba4eb52440e7f11b7c2a7112b225413700b7b3bf86084a5e588d7486ed253"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/kali/current/amd64/default/20260924_17%3A14/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="c99b689d4d552210a64d44c30485aa173d94d8dd507e528a5c47378336071941"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/kali/current/arm64/default/20260922_17%3A14/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="d56c8ba88606628e041f84f86d7ea77a78c6f49f9e8db693d4f90666a65711c4"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/kali/current/arm64/default/20260924_17%3A14/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="28b2620e84de8d5c4aaf58ae256f34fafd14b7caa8decbae7cbc6df3494c2250"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
