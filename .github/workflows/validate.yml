@@ -1,0 +1,110 @@
+name: Validate distro scripts
+
+# Každý distro skript musí projít tools/validate.py: stáhnout, ověřit, rozbalit
+# jako appka a NABOOTOVAT pod proot na aarch64 (ubuntu-24.04-arm = nativně).
+#  - pull_request: změněné skripty s --full (včetně bootstrapu) + --require-arch
+#  - schedule:     všechny skripty bez bootstrapu (hlídá hnijící URL) → issue
+#  - dispatch:     ručně, volitelně --full
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Spustit i bootstrap (trvá dlouho)"
+        type: boolean
+        default: false
+      scripts:
+        description: "Mezerou oddělené skripty (prázdné = všechny)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Závislosti
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq proot xz-utils bzip2 gzip python3
+
+      - name: Validátor (u PR z base větve, PR si kontrolu nesmí oslabit)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] && \
+             git show "origin/${{ github.base_ref }}:tools/validate.py" > /tmp/validate.py 2>/dev/null; then
+            echo "Používám tools/validate.py z origin/${{ github.base_ref }}"
+          else
+            cp tools/validate.py /tmp/validate.py
+          fi
+
+      - name: Výběr skriptů
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            changed=$(git diff --name-only --diff-filter=AMR "origin/${{ github.base_ref }}...HEAD" \
+                      | grep -E '^[^/]+\.sh$' | tr '\n' ' ')
+            echo "scripts=$changed" >> "$GITHUB_OUTPUT"
+            echo "flags=--full --require-arch" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.scripts }}" ]; then
+            echo "scripts=${{ inputs.scripts }}" >> "$GITHUB_OUTPUT"
+            echo "flags=${{ inputs.full && '--full' || '' }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "scripts=--all" >> "$GITHUB_OUTPUT"
+            echo "flags=${{ inputs.full && '--full' || '' }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Statická kontrola všech skriptů
+        run: python3 /tmp/validate.py --static --all
+
+      - name: Validace + boot
+        if: steps.pick.outputs.scripts != ''
+        run: |
+          set -o pipefail
+          python3 /tmp/validate.py ${{ steps.pick.outputs.flags }} ${{ steps.pick.outputs.scripts }} \
+            2>&1 | tee /tmp/validate.log
+      - name: Souhrn do job summary
+        if: always()
+        run: |
+          {
+            echo '## Validace distro skriptů'
+            echo '```'
+            if [ -f /tmp/validate.log ]; then sed -n '/=== Souhrn ===/,$p' /tmp/validate.log; else echo "(boot validace neběžela — žádný změněný skript)"; fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Issue s rozbitými skripty (noční běh)
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.existsSync('/tmp/validate.log') ? fs.readFileSync('/tmp/validate.log', 'utf8') : '';
+            const summary = (log.split('=== Souhrn ===')[1] || log.slice(-6000)).trim();
+            const body = `Noční validace našla rozbité distro skripty. Oprav je (nebo smaž) podle AGENTS.md.\n\n` +
+              `Běh: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n` +
+              '```\n' + summary + '\n```';
+            const title = 'Rozbité distro skripty (noční validace)';
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: 'broken-distro' });
+            if (open.length) {
+              await github.rest.issues.update({ owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: open[0].number, body });
+            } else {
+              await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['broken-distro'] });
+            }

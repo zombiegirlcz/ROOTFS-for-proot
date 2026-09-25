@@ -12,8 +12,6 @@ declare -A TARBALL_SHA256
 TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260922_05%3A09/rootfs.tar.xz"
 TARBALL_SHA256['x86_64']="ad44a3ffaaa6374501ccf8f72b169c873cdf00ee5884239bbfc62d01544507f8"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20260922_05%3A09/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="ad44a3ffaaa6374501ccf8f72b169c873cdf00ee5884239bbfc62d01544507f8"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -90,20 +88,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Amazon Linux 2023 in PRoot
-
+# Entrypoint for Amazon Linux 2023 in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=dnf
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

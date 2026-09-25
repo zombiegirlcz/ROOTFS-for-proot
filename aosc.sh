@@ -84,6 +84,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 #   - systemd / init system services cannot run as real PID 1 inside PRoot.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export DEBIAN_FRONTEND=noninteractive
 
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
@@ -97,20 +98,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for AOSC OS in PRoot
-
+# Entrypoint for AOSC OS in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=apt
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script
