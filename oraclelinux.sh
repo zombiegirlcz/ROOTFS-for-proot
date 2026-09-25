@@ -9,8 +9,8 @@ DISTRO_ICON="🔴"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/oracle/9/amd64/default/20260922_07%3A46/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="888fda719a03515db92977aaa134eaccef6913e7b4343d7898ed5a6de2daafcc"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/oracle/9/amd64/default/20260924_07%3A46/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="ecc68c0286fdaeb492b978bc89d220efc28be756a333f9efb3643f6d84e36e06"
 
 TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/oracle/9/arm64/default/20260922_08%3A09/rootfs.tar.xz"
 TARBALL_SHA256['aarch64']="e59ac85bd3c7a7596f54fc4b030afa7dca8ba230d502e30dbdfdf041eecfd371"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
