@@ -24,6 +24,8 @@ Použití:
   tools/validate.py --full alpine.sh          # 1–8 (síť, trvá minuty)
   tools/validate.py --all                     # všechny *.sh v kořeni repa
   tools/validate.py --static alpine.sh        # jen 1–2 (bez sítě)
+  tools/validate.py --urls-only --all         # dostupnost VŠECH URL všech arch (rychlé)
+  tools/validate.py --urls --all              # URL všech arch + stažení + boot aarch64
 
 Závislosti: python3, tar, xz, bzip2, gzip, proot (+ qemu-user-static, pokud
 host není aarch64). Exit 0 = vše prošlo, 1 = aspoň jedno FAIL.
@@ -236,6 +238,41 @@ def tar_format(url):
             return fmt
     # Appka určuje formát z CELÉ URL (i s query) — musí končit příponou.
     return None
+
+
+# ─── 2b. dostupnost všech URL (všechny architektury) ─────────────────────
+
+def check_url_alive(url):
+    """Vrátí (ok, popis). HEAD, při odmítnutí GET s Range 0-0 (nic se nestahuje)."""
+    last = ""
+    for method, headers in (("HEAD", {}), ("GET", {"Range": "bytes=0-0"})):
+        req = urllib.request.Request(url, method=method,
+                                     headers={"User-Agent": "rootfs-validate/1", **headers})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                size = r.headers.get("Content-Length") if method == "HEAD" else \
+                    (r.headers.get("Content-Range") or "").rpartition("/")[2]
+                ctype = r.headers.get("Content-Type", "")
+                if "text/html" in ctype:
+                    return False, f"HTTP {r.status}, ale vrací HTML stránku (ne tarball)"
+                return True, f"HTTP {r.status}" + (f", {int(size) // (1 << 20)} MB" if size and size.isdigit() else "")
+        except urllib.error.HTTPError as e:
+            last = f"HTTP {e.code}"
+            if e.code not in (403, 405, 501):
+                break
+        except Exception as e:  # noqa: BLE001
+            last = str(e)
+            break
+    return False, last
+
+
+def check_all_urls(urls, rep):
+    for key, url in sorted(urls.items()):
+        ok, why = check_url_alive(url)
+        if ok:
+            rep.ok(f"URL ['{key}'] žije ({why})")
+        else:
+            rep.fail(f"URL ['{key}'] nedostupná ({why}): {url}")
 
 
 # ─── 3. fetch ──────────────────────────────────────────────────────────────
@@ -554,7 +591,9 @@ def validate(path, args):
     rep = Report(os.path.basename(path))
     print(f"\n=== {rep.name} ({args.arch}) ===")
     script, urls, shas, single, multi = check_static(path, args.arch, rep)
-    if args.static or rep.fails or args.arch not in urls:
+    if args.urls and not args.static:
+        check_all_urls(urls, rep)
+    if args.static or args.urls_only or rep.fails or args.arch not in urls:
         return rep
     url, sha = urls[args.arch], shas.get(args.arch, "")
     tarball = fetch(url, sha, rep)
@@ -592,9 +631,15 @@ def main():
     ap.add_argument("--full", action="store_true", help="i bootstrap (síť, minuty)")
     ap.add_argument("--timeout", type=int, default=1800, help="limit pro --full boot (s)")
     ap.add_argument("--keep", action="store_true", help="nemazat rozbalený rootfs")
+    ap.add_argument("--urls", action="store_true",
+                    help="ověřit dostupnost VŠECH TARBALL_URL (všechny architektury), bez stahování")
+    ap.add_argument("--urls-only", action="store_true",
+                    help="jen parse + --urls, bez stažení a bootu (rychlá kontrola všech URL)")
     ap.add_argument("--require-arch", action="store_true",
                     help="chybějící URL pro --arch je FAIL (pro nové/změněné skripty v PR)")
     args = ap.parse_args()
+    if args.urls_only:
+        args.urls = True
     global REQUIRE_ARCH
     REQUIRE_ARCH = args.require_arch
     scripts = list(args.scripts)

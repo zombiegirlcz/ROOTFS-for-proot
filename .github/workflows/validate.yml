@@ -69,11 +69,14 @@ jobs:
             echo "flags=${{ inputs.full && '--full' || '' }}" >> "$GITHUB_OUTPUT"
           else
             echo "scripts=--all" >> "$GITHUB_OUTPUT"
-            echo "flags=${{ inputs.full && '--full' || '' }}" >> "$GITHUB_OUTPUT"
+            echo "flags=--urls ${{ inputs.full && '--full' || '' }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Statická kontrola všech skriptů
         run: python3 /tmp/validate.py --static --all
+
+      - name: Dostupnost všech URL (všechny skripty, všechny architektury)
+        run: python3 /tmp/validate.py --urls-only --all 2>&1 | tee /tmp/validate-urls.log
 
       - name: Validace + boot (nové skripty, aarch64 povinná)
         if: steps.pick.outputs.added != ''
@@ -94,7 +97,7 @@ jobs:
           {
             echo '## Validace distro skriptů'
             echo '```'
-            for f in /tmp/validate-added.log /tmp/validate.log; do
+            for f in /tmp/validate-urls.log /tmp/validate-added.log /tmp/validate.log; do
               [ -f "$f" ] && sed -n '/=== Souhrn ===/,$p' "$f"
             done
             [ -f /tmp/validate.log ] || [ -f /tmp/validate-added.log ] || echo "(boot validace neběžela — žádný změněný skript)"
@@ -107,8 +110,13 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const log = fs.existsSync('/tmp/validate.log') ? fs.readFileSync('/tmp/validate.log', 'utf8') : '';
-            const summary = (log.split('=== Souhrn ===')[1] || log.slice(-6000)).trim();
+            const part = f => {
+              if (!fs.existsSync(f)) return '';
+              const t = fs.readFileSync(f, 'utf8');
+              return (t.split('=== Souhrn ===')[1] || t.slice(-4000)).trim();
+            };
+            const summary = ['URL (všechny arch):', part('/tmp/validate-urls.log'), '',
+                             'Stažení + boot:', part('/tmp/validate.log')].join('\n');
             const body = `Noční validace našla rozbité distro skripty. Oprav je (nebo smaž) podle AGENTS.md.\n\n` +
               `Běh: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\n` +
               '```\n' + summary + '\n```';

@@ -206,6 +206,8 @@ and no TTY**. It must finish without questions and exit 0.
 
 ```bash
 python3 tools/validate.py --static --all                      # fast, no network
+python3 tools/validate.py --urls-only --all                   # every TARBALL_URL of every arch is alive
+python3 tools/validate.py --urls --all                        # + download, extract and BOOT all aarch64 tarballs
 python3 tools/validate.py --full --require-arch <slug>.sh      # what CI runs on PRs
 python3 tools/validate.py --no-boot <slug>.sh                  # where proot can't run (nested ptrace)
 ```
@@ -222,8 +224,10 @@ automatically). CI (`.github/workflows/validate.yml`) runs on `ubuntu-24.04-arm`
 - **PR**: `--static --all`, then `--full --require-arch` on every added/changed
   root `*.sh`. The validator is taken from the **base branch**, so a PR cannot
   weaken it. PRs that touch `tools/` or `.github/` are never auto-merged.
-- **Nightly**: all scripts (boot, no bootstrap). Failures open/update the issue
-  labelled `broken-distro`.
+- **Every PR and nightly**: `--urls-only --all` — every URL of every arch in
+  every script must be alive.
+- **Nightly**: all scripts `--urls --all` (download + boot, no bootstrap).
+  Failures open/update the issue labelled `broken-distro`.
 - `auto-merge-prs.yml` merges a PR only after validation succeeded on its
   current head commit, otherwise it comments with the log link.
 
@@ -235,18 +239,38 @@ automatically). CI (`.github/workflows/validate.yml`) runs on `ubuntu-24.04-arm`
 You maintain the distro plug-in scripts in zombiegirlcz/ROOTFS-for-proot.
 Read AGENTS.md completely before doing anything. It is the contract with the app.
 
-Every run, in this order:
+Every run, in this order. Steps 0 and 1 are MANDATORY on EVERY run, even if
+you think nothing changed — URLs rot daily (LXC builds are deleted after days).
 
-1. REPAIR FIRST
-   - Run `python3 tools/validate.py --all` (or `--no-boot --all` if proot cannot run
-     in your sandbox) and read the open issue labelled `broken-distro`.
+0. CHECK ALL TARBALLS — EVERY RUN, NO EXCEPTIONS
+   a) URL validation of ALL tarballs of ALL scripts and ALL architectures:
+        python3 tools/validate.py --urls-only --all
+      Every `TARBALL_URL[...]` in every script must answer HTTP 200 with a
+      tarball (not an HTML page). Record every failing script + arch.
+   b) Boot test of ALL tarballs through PRoot:
+        python3 tools/validate.py --urls --all
+      This downloads every aarch64 tarball, checks SHA256, extracts it like the
+      app and BOOTS it under proot; the login shell must answer. Every script
+      must end as PASS (or SKIP when it has no aarch64 key). Do not stop at the
+      first failure — run the whole list and collect all FAILs.
+      If proot cannot run in your sandbox (nested ptrace: "proot na tomto hostu
+      nefunguje"), run `python3 tools/validate.py --urls --no-boot --all`, say so
+      explicitly in the PR, and rely on CI for the boot — never skip the rest.
+   c) Also read the open issue labelled `broken-distro` (nightly CI results).
+   Paste the "=== Souhrn ===" block of (a) and (b) into your PR description.
+
+1. REPAIR EVERYTHING THAT FAILED IN STEP 0
    - For every FAIL: fix it (usually a stale LXC build URL → resolve the newest
-     build + its SHA256SUMS as in AGENTS.md §4). If a distro has no valid aarch64
-     rootfs anymore, remove its `TARBALL_URL['aarch64']`/SHA lines (the app then
-     hides it on phones) — never point the aarch64 key at another arch.
+     build + its SHA256SUMS as in AGENTS.md §4; a dead URL of another arch →
+     resolve it the same way or remove that arch's URL+SHA lines).
+   - If a distro has no valid aarch64 rootfs anymore, remove its
+     `TARBALL_URL['aarch64']`/SHA lines (the app then hides it on phones) —
+     never point the aarch64 key at another arch.
+   - Re-run step 0 for the repaired scripts until they PASS.
    - Put the repairs in their own PR.
 
-2. ADD EXACTLY ONE NEW DISTRO (only if step 1 left nothing broken)
+2. ADD EXACTLY ONE NEW DISTRO (only after steps 0 + 1; if repairs are still
+   failing, fix those instead of adding a distro)
    - Pick a distro that is not in the repo yet and that has an official aarch64
      rootfs tarball meeting AGENTS.md §4. If you cannot find one in a reasonable
      time, pick a different distro. Do not invent URLs.
