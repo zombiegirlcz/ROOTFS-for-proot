@@ -5,8 +5,9 @@ Android app offers under "presets". The app boots it with PRoot on a phone
 (aarch64, Android kernel, no root, SELinux).
 
 > **Hard rule: a script is only done when `tools/validate.py --full --require-arch <slug>.sh`
-> passes.** CI runs that on every PR on a real aarch64 runner and the PR is merged
-> only if it passes. Do not open a PR that you have not validated.
+> passes.** There is no CI that boots rootfs — the agent (Jules) runs the validator
+> itself (§6) and pastes the summaries into the PR; auto-merge refuses a PR without
+> them or with any `FAIL`. Do not open a PR that you have not validated.
 
 ---
 
@@ -202,13 +203,13 @@ and no TTY**. It must finish without questions and exit 0.
 
 ---
 
-## 6. Validation (mandatory, local and CI)
+## 6. Validation (mandatory, run by the agent)
 
 ```bash
 python3 tools/validate.py --static --all                      # fast, no network
 python3 tools/validate.py --urls-only --all                   # every TARBALL_URL of every arch is alive
 python3 tools/validate.py --urls --all                        # + download, extract and BOOT all aarch64 tarballs
-python3 tools/validate.py --full --require-arch <slug>.sh      # what CI runs on PRs
+python3 tools/validate.py --full --require-arch <slug>.sh      # every added script (aarch64 mandatory)
 python3 tools/validate.py --no-boot <slug>.sh                  # where proot can't run (nested ptrace)
 ```
 
@@ -219,17 +220,36 @@ launcher, login shell must answer → (`--full`) bootstrap creates
 `/.nh/bootstrap.done` and `NH_PKG`'s command exists.
 
 It needs `proot` (and `qemu-user-static` on a non-aarch64 host; `-q` is added
-automatically). CI (`.github/workflows/validate.yml`) runs on `ubuntu-24.04-arm`:
+automatically).
 
-- **PR**: `--static --all`, then `--full --require-arch` on every added/changed
-  root `*.sh`. The validator is taken from the **base branch**, so a PR cannot
-  weaken it. PRs that touch `tools/` or `.github/` are never auto-merged.
-- **Every PR and nightly**: `--urls-only --all` — every URL of every arch in
-  every script must be alive.
-- **Nightly**: all scripts `--urls --all` (download + boot, no bootstrap).
-  Failures open/update the issue labelled `broken-distro`.
-- `auto-merge-prs.yml` merges a PR only after validation succeeded on its
-  current head commit, otherwise it comments with the log link.
+### Who runs it: Jules, not GitHub Actions
+
+There is **no validation workflow on GitHub**. The daily agent (Jules) runs the
+validator itself in its VM, which the Jules setup script prepares (`proot`,
+`qemu-user-static`, `xz`/`bzip2`/`gzip`, `curl`, `file`). The Jules VM is
+x86_64, so aarch64 rootfs boot through `proot -q qemu-aarch64-static`.
+
+What the agent must run (this replaces the old `validate.yml`):
+
+| When | Command | Scope |
+|---|---|---|
+| every run | `--static --all` | all scripts, no network |
+| every run | `--urls-only --all` | every URL of every arch is alive |
+| every run | `--urls --all` | download + extract + **boot** all aarch64 tarballs (no bootstrap) |
+| for each **added** script | `--full --require-arch <slug>.sh` | aarch64 mandatory, bootstrap too |
+| for each **changed** script | `--urls --full <slug>.sh` | x86-only scripts stay SKIP |
+
+- Use the validator from `origin/master`, never your own edited copy:
+  `git fetch origin master && git show origin/master:tools/validate.py > /tmp/validate.py`
+  and run `python3 /tmp/validate.py …` from the repo root (a PR must not be able
+  to weaken the check).
+- Every command prints `=== Souhrn ===`; paste all summaries into the PR
+  description. A PR without them, or with any `FAIL` line, is not merged.
+- `auto-merge-prs.yml` merges a PR only when: it is not a draft, it does not
+  touch `tools/`, `.github/` or `AGENTS.md`, the description contains a
+  `=== Souhrn ===` block with no `FAIL` line, and a quick re-check on GitHub
+  (`--static` + `--urls-only` of the changed scripts, base-branch validator,
+  seconds, no downloads) passes. Otherwise it comments why.
 
 ---
 
@@ -241,6 +261,18 @@ Read AGENTS.md completely before doing anything. It is the contract with the app
 
 Every run, in this order. Steps 0 and 1 are MANDATORY on EVERY run, even if
 you think nothing changed — URLs rot daily (LXC builds are deleted after days).
+
+PREPARATION (every run)
+   - Environment comes from the Jules setup script (proot, qemu-user-static,
+     xz/bzip2/gzip, curl, file). If `proot` or `qemu-aarch64-static` is
+     missing, install them: `sudo apt-get install -y proot qemu-user-static`.
+   - Take the validator from master, not from your working tree:
+       git fetch origin master
+       git show origin/master:tools/validate.py > /tmp/validate.py
+     Below, `tools/validate.py` means `/tmp/validate.py`, always run from the
+     repo root.
+   - Quick static check of everything first:
+       python3 /tmp/validate.py --static --all
 
 0. CHECK ALL TARBALLS — EVERY RUN, NO EXCEPTIONS
    a) URL validation of ALL tarballs of ALL scripts and ALL architectures:
@@ -255,8 +287,7 @@ you think nothing changed — URLs rot daily (LXC builds are deleted after days)
       first failure — run the whole list and collect all FAILs.
       If proot cannot run in your sandbox (nested ptrace: "proot na tomto hostu
       nefunguje"), run `python3 tools/validate.py --urls --no-boot --all`, say so
-      explicitly in the PR, and rely on CI for the boot — never skip the rest.
-   c) Also read the open issue labelled `broken-distro` (nightly CI results).
+      explicitly in the PR (first line, bold) — never skip the rest.
    Paste the "=== Souhrn ===" block of (a) and (b) into your PR description.
 
 1. REPAIR EVERYTHING THAT FAILED IN STEP 0
@@ -284,19 +315,26 @@ you think nothing changed — URLs rot daily (LXC builds are deleted after days)
      correct `NH_PKG` and `NH_LIBC`.
    - Bootstrap per AGENTS.md §5: non-interactive, index refresh, no systemd.
 
-3. VALIDATE — DEFINITION OF DONE
-   - `python3 tools/validate.py --full --require-arch <slug>.sh` must print
-     `PASS`. If proot cannot run in your environment, run at least
-     `--no-boot --require-arch` and state that in the PR; CI will do the boot.
+3. VALIDATE — DEFINITION OF DONE (you are the CI — nothing else boots it)
+   - Every script you ADDED:
+       python3 /tmp/validate.py --full --require-arch <slug>.sh
+   - Every script you CHANGED (repairs):
+       python3 /tmp/validate.py --urls --full <slug>.sh
+   - Then once more for the whole repo: `--static --all` and `--urls-only --all`.
+   - Each must print `PASS` (SKIP only for scripts without aarch64). If proot cannot run in your environment, run at least
+     `--no-boot --require-arch`, state that in the PR in bold and do NOT
+     claim the distro boots — nobody else will test the boot for you.
    - Fix and re-run until it passes. Never "fix" a failure by weakening the
      script's claims (e.g. deleting the manifest) or by editing tools/ or .github/.
 
 4. OPEN THE PR
    - One distro per PR (repairs separate). Title: `Add <Name> <version> (aarch64)`
      or `Fix <slugs>: <what>`.
-   - Paste the validator's final summary into the PR description.
+   - Paste EVERY `=== Souhrn ===` block (static, urls-only, urls --all and the
+     per-script runs) into the PR description. Auto-merge refuses a PR without
+     them or with any `FAIL` line.
    - Do not touch tools/, .github/ or AGENTS.md — those PRs are never auto-merged.
-   - If CI comments "Validace neprošla", read the log, fix, push again.
+   - If the auto-merge bot comments why it did not merge, fix that and push again.
 
 Never:
 - put a non-aarch64 URL under the 'aarch64' key;

@@ -1,59 +1,111 @@
 name: Auto-merge validated PRs
 
-# Sloučí PR až POTOM, co mu prošla validace (workflow "Validate distro scripts").
-# Neprošlá validace = komentář do PR s odkazem na log, aby ho agent opravil.
-# PR, které mění tools/ nebo .github/, se neslučují automaticky (validátor
-# a CI smí měnit jen člověk).
+# Boot validaci dělá agent (Jules) sám ve svém VM — viz AGENTS.md §6.
+# Tady se jen ověří, že ji opravdu udělal a že prošla:
+#  1) PR není draft a nemění tools/, .github/ ani AGENTS.md,
+#  2) popis PR obsahuje blok "=== Souhrn ===" z tools/validate.py bez řádku FAIL,
+#  3) rychlá kontrola na GitHubu: validátor z BASE větve, --static a --urls-only
+#     změněných skriptů (jen HEAD requesty, žádné stahování ani boot).
+# Skripty z PR se nikdy nespouštějí — validátor je jen regexem parsuje.
 on:
-  workflow_run:
-    workflows: ["Validate distro scripts"]
-    types: [completed]
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
 
 permissions:
   contents: write
   pull-requests: write
   issues: write
 
+concurrency:
+  group: automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   merge:
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/github-script@v7
+      - name: Base větev (validátor)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - name: Soubory z PR (jen jako data)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          persist-credentials: false
+
+      - name: Kontrola popisu a změněných souborů
+        id: gate
+        uses: actions/github-script@v7
         with:
           script: |
-            const run = context.payload.workflow_run;
+            const pr = context.payload.pull_request;
             const owner = context.repo.owner, repo = context.repo.repo;
-            const prs = run.pull_requests || [];
-            if (!prs.length) { core.info('Run nepatří k PR z tohoto repa; konec.'); return; }
-            const number = prs[0].number;
-            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: number });
-            const comment = body => github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            const files = await github.paginate(github.rest.pulls.listFiles,
+              { owner, repo, pull_number: pr.number });
+            const names = files.map(f => f.filename);
+            const guarded = names.filter(f => f.startsWith('tools/') || f.startsWith('.github/') || f === 'AGENTS.md');
+            const scripts = files.filter(f => /^[^/]+\.sh$/.test(f.filename) && f.status !== 'removed')
+                                 .map(f => f.filename);
+            const body = pr.body || '';
+            const problems = [];
+            if (guarded.length) problems.push(`PR mění ${guarded.join(', ')} — to se neslučuje automaticky (ruční review).`);
+            if (!body.includes('=== Souhrn ===')) problems.push('Popis PR neobsahuje výstup `=== Souhrn ===` z `tools/validate.py` (AGENTS.md §6).');
+            if (/^\s*FAIL\s/m.test(body)) problems.push('Souhrn v popisu PR obsahuje `FAIL`.');
+            core.setOutput('scripts', scripts.map(s => `pr/${s}`).join(' '));
+            core.setOutput('problems', problems.join('\n'));
 
-            if (pr.state !== 'open') { core.info(`PR #${number} není otevřený.`); return; }
-            if (pr.head.sha !== run.head_sha) {
-              core.info('Od validace přibyly commity — počká se na novou validaci.');
+      - name: Rychlá kontrola skriptů (base validátor)
+        id: check
+        if: steps.gate.outputs.problems == '' && steps.gate.outputs.scripts != ''
+        run: |
+          set -o pipefail
+          { python3 base/tools/validate.py --static ${{ steps.gate.outputs.scripts }} &&
+            python3 base/tools/validate.py --urls-only ${{ steps.gate.outputs.scripts }}; } \
+            2>&1 | tee /tmp/check.log
+
+      - name: Sloučit nebo okomentovat
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PROBLEMS: ${{ steps.gate.outputs.problems }}
+          CHECK: ${{ steps.check.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner, repo = context.repo.repo, number = pr.number;
+            const comment = body => github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            if (process.env.PROBLEMS) {
+              await comment(`⏸ Nesloučeno:\n\n${process.env.PROBLEMS}\n\nLog: ${run}`);
               return;
             }
-            if (run.conclusion !== 'success') {
-              await comment(`❌ Validace neprošla (${run.conclusion}), PR se nesloučí.\n\n` +
-                `Log: ${run.html_url}\n\nOprav skript podle výstupu \`tools/validate.py\` a pushni znovu ` +
-                `(nebo lokálně: \`python3 tools/validate.py --full --require-arch <skript>.sh\`).`);
-              core.setFailed('Validation failed');
+            if (process.env.CHECK === 'failure') {
+              const log = fs.existsSync('/tmp/check.log') ? fs.readFileSync('/tmp/check.log', 'utf8') : '';
+              const tail = (log.split('=== Souhrn ===').slice(-1)[0] || log.slice(-3000)).trim();
+              await comment(`❌ Rychlá kontrola neprošla, PR se nesloučí.\n\n\`\`\`\n${tail}\n\`\`\`\n\n` +
+                `Oprav skript a spusť znovu validaci podle AGENTS.md §6. Log: ${run}`);
+              core.setFailed('Check failed');
               return;
             }
-            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: number });
-            const guarded = files.map(f => f.filename).filter(f => f.startsWith('tools/') || f.startsWith('.github/'));
-            if (guarded.length) {
-              await comment(`⏸ PR mění ${guarded.join(', ')} — validátor/CI se neslučují automaticky, ` +
-                `čeká na ruční review.`);
+            if (process.env.CHECK !== 'success' && process.env.CHECK !== 'skipped') {
+              core.setFailed(`Kontrola skončila stavem ${process.env.CHECK}`);
               return;
             }
             for (let i = 0; i < 20; i++) {
               const { data } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+              if (data.state !== 'open') return;
+              if (data.head.sha !== pr.head.sha) { core.info('Přibyly commity, počká se na nový běh.'); return; }
               if (data.mergeable === true) {
                 await github.rest.pulls.merge({ owner, repo, pull_number: number, merge_method: 'merge',
-                  sha: run.head_sha, commit_title: `Auto-merge PR #${number}: ${data.title}` });
+                  sha: pr.head.sha, commit_title: `Auto-merge PR #${number}: ${data.title}` });
                 core.info(`Sloučeno #${number}`);
                 return;
               }
