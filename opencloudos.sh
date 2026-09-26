@@ -9,24 +9,21 @@ DISTRO_ICON="☁️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://mirrors.opencloudos.tech/opencloudos/9/images/docker/x86_64/20260920.1/OpenCloudOS-Container-Minimal-9.6-20260920.1.x86_64.tar.xz"
-TARBALL_SHA256['x86_64']="12fc84dd95016394f8fd9489e000432b56f78901c241b795bc1c3fc2ee3d0e57"
-
-TARBALL_URL['aarch64']="https://mirrors.opencloudos.tech/opencloudos/9/images/docker/aarch64/20260920.1/OpenCloudOS-Container-Minimal-9.6-20260920.1.aarch64.tar.xz"
-TARBALL_SHA256['aarch64']="61bd8b1ebd9d01ab8f35409c68fd2f5f7ddd88e30b950bf3d864651b7cc78588"
+# No valid flat rootfs available (official downloads are docker save archives)
 
 # Detect best URL for current arch
-SELECTED_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-SELECTED_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
+SELECTED_URL="${TARBALL_URL[$SELECTED_ARCH]:-}"
+SELECTED_SHA256="${TARBALL_SHA256[$SELECTED_ARCH]:-}"
 
 if [ -z "$SELECTED_URL" ]; then
-    echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
+    echo "ERROR: No tarball URL for architecture $SELECTED_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
 TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
-echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
+echo "Downloading $DISTRO_NAME rootfs for $SELECTED_ARCH..."
 curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
     echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1

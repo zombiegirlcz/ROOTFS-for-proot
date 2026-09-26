@@ -9,34 +9,28 @@ DISTRO_ICON="🐉"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/aarch64/AnolisOS-8.10-aarch64-docker.tar"
-TARBALL_SHA256['aarch64']="9fbf6c62a7114418f6191000962f8dbd29b3418e67923500d013a44b71bed8a2"
-
-TARBALL_URL['x86_64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/x86_64/AnolisOS-8.10-x86_64-docker.tar"
-TARBALL_SHA256['x86_64']="2351fa94407663a1c76837237f632ae07cf69abd79c5669dd5660ddcf985680b"
-
-TARBALL_URL['loongarch64']="https://mirrors.openanolis.cn/anolis/8.10/isos/GA/loongarch64/AnolisOS-8.10-loongarch64-docker.tar"
-TARBALL_SHA256['loongarch64']="cf6947b7fee844de833f9980c68be650bd8f42a306f85e40c6ce5ff6775003c9"
+# No valid flat rootfs available (official downloads are docker save archives)
 
 # Detect best URL for current arch
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
+SELECTED_URL="${TARBALL_URL[$SELECTED_ARCH]:-}"
+SELECTED_SHA256="${TARBALL_SHA256[$SELECTED_ARCH]:-}"
 
-if [ -z "$TARBALL_URL" ]; then
-    echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
+if [ -z "$SELECTED_URL" ]; then
+    echo "ERROR: No tarball URL for architecture $SELECTED_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
 TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar"
-echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+echo "Downloading $DISTRO_NAME rootfs for $SELECTED_ARCH..."
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1

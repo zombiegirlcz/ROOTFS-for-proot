@@ -9,31 +9,28 @@ DISTRO_ICON="🚛"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://stable.release.flatcar-linux.net/arm64-usr/current/flatcar-container.tar.gz"
-TARBALL_SHA256['aarch64']="72f55998a16a1b4a3c1da62e8d243047dce7df21d2ea62410dfdfa57f1a3e370"
-
-TARBALL_URL['x86_64']="https://stable.release.flatcar-linux.net/amd64-usr/current/flatcar-container.tar.gz"
-TARBALL_SHA256['x86_64']="f8c93b7daf189abeb0e3f0e61c1b97b726e264a14bae27355c40efe0d9d49322"
+# No valid rootfs available (archive missing etc/ and standard rootfs tree)
 
 # Detect best URL for current arch
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
+SELECTED_URL="${TARBALL_URL[$SELECTED_ARCH]:-}"
+SELECTED_SHA256="${TARBALL_SHA256[$SELECTED_ARCH]:-}"
 
-if [ -z "$TARBALL_URL" ]; then
-    echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
+if [ -z "$SELECTED_URL" ]; then
+    echo "ERROR: No tarball URL for architecture $SELECTED_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
 TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.gz"
-echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+echo "Downloading $DISTRO_NAME rootfs for $SELECTED_ARCH..."
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1
