@@ -9,40 +9,28 @@ DISTRO_ICON="🐂"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://ftp.gnu.org/gnu/guix/guix-binary-1.5.0.aarch64-linux.tar.xz"
-TARBALL_SHA256['aarch64']="a5d58b1d0294cad6adb1f2aff627d37feb5db763fdffbceb8551f2b12123cf39"
-
-TARBALL_URL['arm']="https://ftp.gnu.org/gnu/guix/guix-binary-1.5.0.armhf-linux.tar.xz"
-TARBALL_SHA256['arm']="e92ddecf4476ce1e41b85e4eb1c8fd9a4756d77c817c1fd986ab24253612b0fa"
-
-TARBALL_URL['x86_64']="https://ftp.gnu.org/gnu/guix/guix-binary-1.5.0.x86_64-linux.tar.xz"
-TARBALL_SHA256['x86_64']="aa41025489c5061543e9c48873eaa829b900b2da75d40f9648913622f5f47817"
-
-TARBALL_URL['x86']="https://ftp.gnu.org/gnu/guix/guix-binary-1.5.0.i686-linux.tar.xz"
-TARBALL_SHA256['x86']="e2aae143a826e218b9724a3e416b3688ff753b11fb63283164010b9802b4b1a4"
-
-TARBALL_URL['riscv64']="https://ftp.gnu.org/gnu/guix/guix-binary-1.5.0.riscv64-linux.tar.xz"
-TARBALL_SHA256['riscv64']="3112abc99c9b0fcd122a6a0f4daa076dd4daf2db366b3f0a675cbe396fa1ae0d"
+# No valid rootfs available (binary tarball is an installer package, not a full rootfs)
 
 # Detect best URL for current arch
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
+SELECTED_URL="${TARBALL_URL[$SELECTED_ARCH]:-}"
+SELECTED_SHA256="${TARBALL_SHA256[$SELECTED_ARCH]:-}"
 
-if [ -z "$TARBALL_URL" ]; then
-    echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
+if [ -z "$SELECTED_URL" ]; then
+    echo "ERROR: No tarball URL for architecture $SELECTED_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
 TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
-echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+echo "Downloading $DISTRO_NAME rootfs for $SELECTED_ARCH..."
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1
