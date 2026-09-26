@@ -9,11 +9,11 @@ DISTRO_ICON="🐱"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/devuan/daedalus/amd64/default/20260922_11%3A50/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="85337844a18ce5fd96de2169189664177ca65b1dc790d59972189554077cfaee"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/devuan/daedalus/amd64/default/20260926_11%3A50/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="3f449f9625bcf6e7147b55d0df57d6878b83be8bcd33bc565590dd658da6b2f2"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/devuan/daedalus/arm64/default/20260922_11%3A50/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="20946fb052a631e7af6644ac953a5625bf84cd2dff4b55193965b02d91edf75b"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/devuan/daedalus/arm64/default/20260926_11%3A50/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="51c147b557ae2001327e993073d06fbb82dc17b0df5a0ce43a0067444ab8e5df"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
