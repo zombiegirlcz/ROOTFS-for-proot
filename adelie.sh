@@ -1,9 +1,9 @@
 #!/bin/bash
 # Distribution plug-in for Adélie Linux
-# Auto-generated on 2026-09-13T04:30:00Z
+# Auto-generated on 2026-09-14T04:20:00Z
 
 DISTRO_NAME="Adélie Linux 1.0-BETA6"
-DISTRO_COMMENT="Adélie Linux official mini rootfs (musl/APK/openrc)"
+DISTRO_COMMENT="Adélie Linux official mini rootfs (musl/apk/apk-tools)"
 DISTRO_ICON="🐧"
 
 declare -A TARBALL_URL
@@ -82,7 +82,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot cannot mimic full Linux kernel syscalls
-#   - OpenRC services do not run as real PID 1 inside PRoot.
+#   - s6 init services do not run as real PID 1 inside PRoot.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
@@ -98,20 +98,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Adélie Linux in PRoot
-
+# Entrypoint for Adélie Linux 1.0-BETA6 in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/sh --login
+exec /bin/sh -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/sh
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=apk
+NH_LIBC=musl
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

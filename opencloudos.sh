@@ -1,24 +1,25 @@
 #!/bin/bash
-# Distribution plug-in for OpenSUSE Tumbleweed
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for OpenCloudOS 9.6
+# Auto-generated on 2026-09-22T22:00:00Z
 
-DISTRO_NAME="OpenSUSE Tumbleweed"
-DISTRO_COMMENT="OpenSUSE official LXC rootfs"
-DISTRO_ICON="🦎"
+DISTRO_NAME="OpenCloudOS 9.6"
+DISTRO_COMMENT="OpenCloudOS official container rootfs"
+DISTRO_ICON="☁️"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260927_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a836b52c0fb2c2a5d084c6a7871c9f9ff14c6928a7dbf1e45a2154fd296c779"
+TARBALL_URL['x86_64']="https://mirrors.opencloudos.tech/opencloudos/9/images/docker/x86_64/20260920.1/OpenCloudOS-Container-Minimal-9.6-20260920.1.x86_64.tar.xz"
+TARBALL_SHA256['x86_64']="12fc84dd95016394f8fd9489e000432b56f78901c241b795bc1c3fc2ee3d0e57"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260927_04%3A27/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="be6887da22eb2e3037610b0e3404a507658e5a91d1a864e6edef242a38739b6e"
+TARBALL_URL['aarch64']="https://mirrors.opencloudos.tech/opencloudos/9/images/docker/aarch64/20260920.1/OpenCloudOS-Container-Minimal-9.6-20260920.1.aarch64.tar.xz"
+TARBALL_SHA256['aarch64']="61bd8b1ebd9d01ab8f35409c68fd2f5f7ddd88e30b950bf3d864651b7cc78588"
 
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+# Detect best URL for current arch
+SELECTED_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+SELECTED_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
-if [ -z "$TARBALL_URL" ]; then
+if [ -z "$SELECTED_URL" ]; then
     echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
     exit 1
 fi
@@ -26,13 +27,13 @@ fi
 mkdir -p "$DISTRO_ROOTFS"
 TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1
@@ -62,6 +63,11 @@ esac
 
 rm -f "$TMP_TARBALL"
 
+if [ -f "$DISTRO_ROOTFS/layer.tar" ]; then
+    tar -xf "$DISTRO_ROOTFS/layer.tar" -C "$DISTRO_ROOTFS"
+    rm -f "$DISTRO_ROOTFS/layer.tar" "$DISTRO_ROOTFS/json" "$DISTRO_ROOTFS/VERSION"
+fi
+
 cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 #!/bin/sh
 #  =============================================================================
@@ -71,7 +77,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. zypper --non-interactive refresh && zypper --non-interactive update
+#   1. dnf update -y
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
@@ -82,15 +88,15 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-zypper --non-interactive refresh && zypper --non-interactive update
+dnf update -y
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 
-mkdir -p "$DISTRO_ROOTFS/root"
+chmod u+w "$DISTRO_ROOTFS/root" 2>/dev/null; mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenSUSE Tumbleweed in PRoot.
+# Entrypoint for OpenCloudOS 9.6 in PRoot.
 # Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 exec /bin/bash -l
@@ -106,7 +112,7 @@ NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=zypper
+NH_PKG=dnf
 NH_LIBC=glibc
 NH_INTEGRATION=minimal
 MANIFEST_EOF

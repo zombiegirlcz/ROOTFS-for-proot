@@ -9,11 +9,11 @@ DISTRO_ICON="🧢"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20260917_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="1b70690bc42f595f1f6583a67e40995602a32b888b29923359480ed6bace7b52"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20260926_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="3b662da6a7227c6fe0c5b854737aba198779d126c5dc447ac65386e1d8595abd"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20260917_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="ecddd73b2c4a1f293288ee2b847520fd297291212c8bbeff9272eca55524a614"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20260926_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="87f8bb768f0fe2853fd832b5c80ec4b3f3b9ed8d368a52dd3c4e61acfd8f7eb5"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -90,20 +90,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Fedora in PRoot
-
+# Entrypoint for Fedora 43 in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=dnf
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

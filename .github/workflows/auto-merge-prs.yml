@@ -1,94 +1,120 @@
-name: Auto-merge PRs into default branch
+name: Auto-merge validated PRs
 
+# Boot validaci dělá agent (Jules) sám ve svém VM — viz AGENTS.md §6.
+# Tady se jen ověří, že ji opravdu udělal a že prošla:
+#  1) PR není draft a nemění tools/, .github/ ani AGENTS.md,
+#  2) popis PR obsahuje blok "=== Souhrn ===" z tools/validate.py bez řádku FAIL,
+#  3) rychlá kontrola na GitHubu: validátor z BASE větve, --static a --urls-only
+#     změněných skriptů (jen HEAD requesty, žádné stahování ani boot).
+# Skripty z PR se nikdy nespouštějí — validátor je jen regexem parsuje.
 on:
   pull_request_target:
-    types: [opened, reopened, ready_for_review, synchronize]
+    types: [opened, reopened, synchronize, edited, ready_for_review]
 
 permissions:
   contents: write
   pull-requests: write
-  checks: read
   issues: write
 
+concurrency:
+  group: automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
-  auto-merge:
+  merge:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
-      - name: Try auto-merge PR into default branch
-        uses: actions/github-script@v6
+      - name: Base větev (validátor)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - name: Soubory z PR (jen jako data)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: pr
+          persist-credentials: false
+
+      - name: Kontrola popisu a změněných souborů
+        id: gate
+        uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
-            if (!pr) {
-              core.info('No pull_request in payload; exiting.');
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const files = await github.paginate(github.rest.pulls.listFiles,
+              { owner, repo, pull_number: pr.number });
+            const names = files.map(f => f.filename);
+            const guarded = names.filter(f => f.startsWith('tools/') || f.startsWith('.github/') || f === 'AGENTS.md');
+            const scripts = files.filter(f => /^[^/]+\.sh$/.test(f.filename) && f.status !== 'removed')
+                                 .map(f => f.filename);
+            const body = pr.body || '';
+            const problems = [];
+            if (guarded.length) problems.push(`PR mění ${guarded.join(', ')} — to se neslučuje automaticky (ruční review).`);
+            if (!body.includes('=== Souhrn ===')) problems.push('Popis PR neobsahuje výstup `=== Souhrn ===` z `tools/validate.py` (AGENTS.md §6).');
+            if (/^\s*FAIL\s/m.test(body)) problems.push('Souhrn v popisu PR obsahuje `FAIL`.');
+            core.setOutput('scripts', scripts.map(s => `pr/${s}`).join(' '));
+            core.setOutput('problems', problems.join('\n'));
+
+      - name: Rychlá kontrola skriptů (base validátor)
+        id: check
+        if: steps.gate.outputs.problems == '' && steps.gate.outputs.scripts != ''
+        run: |
+          set -o pipefail
+          { python3 base/tools/validate.py --static ${{ steps.gate.outputs.scripts }} &&
+            python3 base/tools/validate.py --urls-only ${{ steps.gate.outputs.scripts }}; } \
+            2>&1 | tee /tmp/check.log
+
+      - name: Sloučit nebo okomentovat
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PROBLEMS: ${{ steps.gate.outputs.problems }}
+          CHECK: ${{ steps.check.outcome }}
+        with:
+          script: |
+            const fs = require('fs');
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner, repo = context.repo.repo, number = pr.number;
+            const comment = body => github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            const run = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            if (process.env.PROBLEMS) {
+              await comment(`⏸ Nesloučeno:\n\n${process.env.PROBLEMS}\n\nLog: ${run}`);
               return;
             }
-
-            const pr_number = pr.number;
-            const defaultBranch = context.payload.repository.default_branch;
-
-            // Only auto-merge if the PR targets the default branch
-            if (pr.base.ref !== defaultBranch) {
-              core.info(`PR base is ${pr.base.ref}, not default (${defaultBranch}); exiting.`);
+            if (process.env.CHECK === 'failure') {
+              const log = fs.existsSync('/tmp/check.log') ? fs.readFileSync('/tmp/check.log', 'utf8') : '';
+              const tail = (log.split('=== Souhrn ===').slice(-1)[0] || log.slice(-3000)).trim();
+              await comment(`❌ Rychlá kontrola neprošla, PR se nesloučí.\n\n\`\`\`\n${tail}\n\`\`\`\n\n` +
+                `Oprav skript a spusť znovu validaci podle AGENTS.md §6. Log: ${run}`);
+              core.setFailed('Check failed');
               return;
             }
-
-            // Poll until GitHub computes mergeable (mergeable can be null initially)
-            const maxAttempts = 20;
-            let attempt = 0;
-            while (attempt < maxAttempts) {
-              const { data } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr_number
-              });
-
-              // data.mergeable: true/false/null
+            if (process.env.CHECK !== 'success' && process.env.CHECK !== 'skipped') {
+              core.setFailed(`Kontrola skončila stavem ${process.env.CHECK}`);
+              return;
+            }
+            for (let i = 0; i < 20; i++) {
+              const { data } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+              if (data.state !== 'open') return;
+              if (data.head.sha !== pr.head.sha) { core.info('Přibyly commity, počká se na nový běh.'); return; }
               if (data.mergeable === true) {
-                try {
-                  await github.rest.pulls.merge({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: pr_number,
-                    merge_method: 'merge',
-                    commit_title: `Auto-merge PR #${pr_number}: ${data.title}`
-                  });
-                  core.info(`Merged PR #${pr_number} into ${defaultBranch}`);
-                  return;
-                } catch (mergeErr) {
-                  core.warning(`Merge API failed: ${mergeErr.message}`);
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: pr_number,
-                    body: `Automatic merge failed when calling merge API:\n\n${mergeErr.message}\n\nPlease resolve conflicts or required checks and merge manually.`
-                  });
-                  core.setFailed(`Merge failed: ${mergeErr.message}`);
-                  return;
-                }
-              } else if (data.mergeable === false) {
-                core.warning(`PR #${pr_number} is not mergeable (state: ${data.mergeable_state}).`);
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pr_number,
-                  body: `Automatic merge aborted: PR is not mergeable (state: ${data.mergeable_state}). Please resolve conflicts or required checks and merge manually.`
-                });
+                await github.rest.pulls.merge({ owner, repo, pull_number: number, merge_method: 'merge',
+                  sha: pr.head.sha, commit_title: `Auto-merge PR #${number}: ${data.title}` });
+                core.info(`Sloučeno #${number}`);
+                return;
+              }
+              if (data.mergeable === false) {
+                await comment(`Automatické sloučení selhalo: PR není mergeable (${data.mergeable_state}).`);
                 core.setFailed('Not mergeable');
                 return;
-              } else {
-                // mergeable === null -> still computing
-                attempt++;
-                core.info(`mergeable is null, waiting 3s (attempt ${attempt}/${maxAttempts})`);
-                await new Promise(r => setTimeout(r, 3000));
               }
+              await new Promise(r => setTimeout(r, 3000));
             }
-
-            // Timed out waiting for mergeable
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: pr_number,
-              body: `Automatic merge timed out while waiting for mergeability to be calculated. Please check the PR and merge manually if possible.`
-            });
-            core.setFailed('Timed out waiting for mergeable state.');
+            await comment('Automatické sloučení vypršelo při čekání na mergeable stav.');
+            core.setFailed('Timed out');

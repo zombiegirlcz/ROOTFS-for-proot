@@ -9,14 +9,14 @@ DISTRO_ICON="🎷"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20260917_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="0aec686543d200e8479327531b1ca91e3cfdb9dc5a7a91934995bb43255ac8f8"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20260927_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="511e6774df9320ae30112cf671bd65a67ac0ed71a1240cb290d9718c38932853"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20260917_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="7331ba49abda92a70c05f6957ab186ed76e6ce2fc861a4e9beb66b4932203799"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20260927_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="3775f51273dac63dc10fc5c35810ca693c0575a025ed5f1382146633ec5ed37e"
 
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20260917_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="e96d4271ad3a317f661cccaa33736e374bc2ccddcd47c2d7887cfe7caf6dac79"
+TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20260927_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['loong64']="2849a1829d5c70669ee5af4fa614757592f0a4089024bc9bba07323edf0f1d09"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -93,20 +93,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Gentoo Linux in PRoot
-
+# Entrypoint for Gentoo Linux in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=emerge
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

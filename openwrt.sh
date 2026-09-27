@@ -2,18 +2,18 @@
 # Distribution plug-in for OpenWrt 24.10
 # Auto-generated on 2026-09-01T22:15:00Z
 
-DISTRO_NAME="OpenWrt 24.10"
+DISTRO_NAME="OpenWrt 25.12"
 DISTRO_COMMENT="OpenWrt official LXC rootfs"
 DISTRO_ICON="🌐"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/24.10/amd64/default/20260906_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8b1e0db9ac9fdfc77a15e83d458837592cf387cd45b92290bc0529bfa9a0e43d"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20260927_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="2fb3b75e66a8c2714651bb16f5ca9a20c6c257c3030506691759a90d203977e6"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/24.10/arm64/default/20260906_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="d3400776300176ae4b21781171cc128095ea3e5b25cd772d52f169d84f4c4181"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20260927_11%3A58/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="e1a885bf2bce2d997511f6c4115d0029d6f5ab4716ce1bd4f3e77153e6df4467"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -90,20 +90,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenWrt in PRoot
-
+# Entrypoint for OpenWrt 25.12 in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/ash --login 2>/dev/null || exec /bin/sh --login
+exec /bin/sh -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/sh
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=opkg
+NH_LIBC=musl
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

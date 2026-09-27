@@ -1,21 +1,19 @@
 #!/bin/bash
-# Distribution plug-in for OpenSUSE Tumbleweed
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Venom Linux
+# Auto-generated on 2026-09-17T00:00:00Z
 
-DISTRO_NAME="OpenSUSE Tumbleweed"
-DISTRO_COMMENT="OpenSUSE official LXC rootfs"
-DISTRO_ICON="🦎"
+DISTRO_NAME="Venom Linux"
+DISTRO_COMMENT="Source-based Linux distribution with scratchpkg package manager"
+DISTRO_ICON="🐍"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260927_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a836b52c0fb2c2a5d084c6a7871c9f9ff14c6928a7dbf1e45a2154fd296c779"
+TARBALL_URL['x86_64']="https://github.com/venomlinux/ports/releases/download/20240123/venomlinux-rootfs-x86_64.tar.xz"
+TARBALL_SHA256['x86_64']="e92822c197b8e6bd4f60931d31ebf73ac66fbdd07f3386aad25cd1ba047d156a"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260927_04%3A27/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="be6887da22eb2e3037610b0e3404a507658e5a91d1a864e6edef242a38739b6e"
-
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+# Detect best URL for current arch
+TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
 if [ -z "$TARBALL_URL" ]; then
@@ -71,7 +69,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. zypper --non-interactive refresh && zypper --non-interactive update
+#   1. scratch sync
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
@@ -82,7 +80,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-zypper --non-interactive refresh && zypper --non-interactive update
+scratch sync || true
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,10 +88,10 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenSUSE Tumbleweed in PRoot.
+# Entrypoint for Venom Linux in PRoot.
 # Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-exec /bin/bash -l
+exec /bin/sh -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
@@ -101,12 +99,12 @@ chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
 # ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
 mkdir -p "$DISTRO_ROOTFS/.nh"
 cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
-NH_SHELL=/bin/bash
+NH_SHELL=/bin/sh
 NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=zypper
+NH_PKG=scratchpkg
 NH_LIBC=glibc
 NH_INTEGRATION=minimal
 MANIFEST_EOF

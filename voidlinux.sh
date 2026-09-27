@@ -1,20 +1,27 @@
 #!/bin/bash
 # Distribution plug-in for Void Linux
-# Auto-generated on 2026-09-01T22:15:00Z
+# Auto-generated on 2026-09-17T00:00:00Z
 
 DISTRO_NAME="Void Linux"
-DISTRO_COMMENT="Void Linux official LXC rootfs"
+DISTRO_COMMENT="Void Linux official rootfs from repo-default.voidlinux.org"
 DISTRO_ICON="🌌"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/voidlinux/current/amd64/default/20260917_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="7801b9559bfcbaf8d5db0ad4621e5aa63216050343e42dbf1cc1e7e5235d1af6"
+TARBALL_URL['aarch64']="https://repo-default.voidlinux.org/live/current/void-aarch64-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['aarch64']="01a30f17ae06d4d5b322cd579ca971bc479e02cc284ec1e5a4255bea6bac3ce6"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/voidlinux/current/arm64/default/20260917_17%3A10/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="762b0fe2d1b747ed2c3e1dbcba584fffb6f215bc2ec91f5d1d35942710b3a17f"
+TARBALL_URL['arm']="https://repo-default.voidlinux.org/live/current/void-armv7l-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['arm']="1b8911b43c0dc35ad56c158e06a277ccf0cabe94dcdde4d5a05771a48a621edc"
 
+TARBALL_URL['x86_64']="https://repo-default.voidlinux.org/live/current/void-x86_64-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['x86_64']="3f48e6673ac5907a897d913c97eb96edbfb230162731b4016562c51b3b8f1876"
+
+TARBALL_URL['x86']="https://repo-default.voidlinux.org/live/current/void-i686-ROOTFS-20250202.tar.xz"
+TARBALL_SHA256['x86']="58f473aa61776f080e0c2c3d4e6066c812dc8052603ddfa09bf20462d3e11950"
+
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
@@ -71,7 +78,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. xbps-install -Su
+#   1. xbps-install -Syu
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
@@ -82,7 +89,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-xbps-install -Su
+xbps-install -Syu
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,20 +97,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Void Linux in PRoot
-
+# Entrypoint for Void Linux in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=xbps
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

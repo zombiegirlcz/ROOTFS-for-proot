@@ -1,38 +1,48 @@
 #!/bin/bash
-# Distribution plug-in for OpenSUSE Tumbleweed
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Deepin 23
+# Auto-generated on 2026-09-21T22:15:00Z
 
-DISTRO_NAME="OpenSUSE Tumbleweed"
-DISTRO_COMMENT="OpenSUSE official LXC rootfs"
-DISTRO_ICON="🦎"
+DISTRO_NAME="Deepin 23"
+DISTRO_COMMENT="Deepin Linux official container rootfs"
+DISTRO_ICON="🐋"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260927_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a836b52c0fb2c2a5d084c6a7871c9f9ff14c6928a7dbf1e45a2154fd296c779"
+TARBALL_URL['aarch64']="https://github.com/deepin-community/deepin-rootfs/releases/download/v1.6.0/deepin-docker-rootfs-arm64.tar.gz"
+TARBALL_SHA256['aarch64']="f11297d18322648b8182213d29ef8b841bc023fecfba034188dae22e16412ee6"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260927_04%3A27/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="be6887da22eb2e3037610b0e3404a507658e5a91d1a864e6edef242a38739b6e"
+TARBALL_URL['x86_64']="https://github.com/deepin-community/deepin-rootfs/releases/download/v1.6.0/deepin-docker-rootfs-amd64.tar.gz"
+TARBALL_SHA256['x86_64']="bb690b26046f96ace43df847472029f1a97c2ed7824851d8771921b703c37ee4"
 
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+TARBALL_URL['x86']="https://github.com/deepin-community/deepin-rootfs/releases/download/v1.6.0/deepin-docker-rootfs-i386.tar.gz"
+TARBALL_SHA256['x86']="e174e2b3ce286e2aedbb62e0533c379fb16847c3ec8684aa5695af9de729e5e6"
 
-if [ -z "$TARBALL_URL" ]; then
+TARBALL_URL['riscv64']="https://github.com/deepin-community/deepin-rootfs/releases/download/v1.6.0/deepin-docker-rootfs-riscv64.tar.gz"
+TARBALL_SHA256['riscv64']="b0df6fa426313d7b5819482a055ccea6a55bf51341656714bcfed266cf9925c4"
+
+TARBALL_URL['loongarch64']="https://github.com/deepin-community/deepin-rootfs/releases/download/v1.6.0/deepin-docker-rootfs-loong64.tar.gz"
+TARBALL_SHA256['loongarch64']="f3b1c3cac22373bc5b999b252575870ea9f646b4e651f96d9652f246f0271f0f"
+
+# Detect best URL for current arch
+SELECTED_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+SELECTED_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
+
+if [ -z "$SELECTED_URL" ]; then
     echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
-TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.gz"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1
@@ -63,26 +73,27 @@ esac
 rm -f "$TMP_TARBALL"
 
 cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
-#!/bin/sh
-#  =============================================================================
+#!/bin/bash
+# ==============================================================================
 # RUNTIME & BOOTSTRAP CONFIGURATION
 # ==============================================================================
-# ENTRYPOINT: /bin/sh
+# ENTRYPOINT: /bin/bash
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. zypper --non-interactive refresh && zypper --non-interactive update
+#   1. apt-get update && apt-get upgrade -y
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers.
+#   - systemd / init system services cannot run as real PID 1 inside PRoot.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export DEBIAN_FRONTEND=noninteractive
 
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-zypper --non-interactive refresh && zypper --non-interactive update
+apt-get update && apt-get upgrade -y
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,7 +101,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenSUSE Tumbleweed in PRoot.
+# Entrypoint for Deepin 23 in PRoot.
 # Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 exec /bin/bash -l
@@ -106,7 +117,7 @@ NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=zypper
+NH_PKG=apt
 NH_LIBC=glibc
 NH_INTEGRATION=minimal
 MANIFEST_EOF

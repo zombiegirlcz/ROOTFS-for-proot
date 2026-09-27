@@ -1,38 +1,36 @@
 #!/bin/bash
-# Distribution plug-in for OpenSUSE Tumbleweed
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Manjaro Linux
+# Auto-generated on 2026-09-23T04:35:00Z
 
-DISTRO_NAME="OpenSUSE Tumbleweed"
-DISTRO_COMMENT="OpenSUSE official LXC rootfs"
-DISTRO_ICON="🦎"
+DISTRO_NAME="Manjaro Linux"
+DISTRO_COMMENT="Manjaro Linux official ARM rootfs"
+DISTRO_ICON="🥭"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260927_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a836b52c0fb2c2a5d084c6a7871c9f9ff14c6928a7dbf1e45a2154fd296c779"
+TARBALL_URL['aarch64']="https://github.com/manjaro-arm/rootfs/releases/download/20260921/Manjaro-ARM-aarch64-latest.tar.gz"
+TARBALL_SHA256['aarch64']="82e2a016bba27a0a4c94072f82126acf0921ad2580fb6d6d2c7ffd4fee6202ab"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260927_04%3A27/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="be6887da22eb2e3037610b0e3404a507658e5a91d1a864e6edef242a38739b6e"
+# Detect best URL for current arch
+SELECTED_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
+SELECTED_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
-TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
-TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
-
-if [ -z "$TARBALL_URL" ]; then
+if [ -z "$SELECTED_URL" ]; then
     echo "ERROR: No tarball URL for architecture $DISTRO_ARCH" >&2
     exit 1
 fi
 
 mkdir -p "$DISTRO_ROOTFS"
-TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.xz"
+TMP_TARBALL="$DISTRO_ROOTFS/.tmp_rootfs.tar.gz"
 echo "Downloading $DISTRO_NAME rootfs for $DISTRO_ARCH..."
-curl -sSL --fail --show-error -o "$TMP_TARBALL" "$TARBALL_URL" || {
-    echo "ERROR: Download failed from $TARBALL_URL" >&2
+curl -sSL --fail --show-error -o "$TMP_TARBALL" "$SELECTED_URL" || {
+    echo "ERROR: Download failed from $SELECTED_URL" >&2
     exit 1
 }
 
-if [ -n "$TARBALL_SHA256" ]; then
-    echo "$TARBALL_SHA256  $TMP_TARBALL" | sha256sum -c - || {
+if [ -n "$SELECTED_SHA256" ]; then
+    echo "$SELECTED_SHA256  $TMP_TARBALL" | sha256sum -c - || {
         echo "ERROR: SHA256 mismatch" >&2
         rm -f "$TMP_TARBALL"
         exit 1
@@ -71,8 +69,9 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. zypper --non-interactive refresh && zypper --non-interactive update
-#   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
+#   1. pacman-key --init && pacman-key --populate || true
+#   2. pacman -Syu --noconfirm
+#   3. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
 
@@ -82,7 +81,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-zypper --non-interactive refresh && zypper --non-interactive update
+pacman -Syu --noconfirm
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,10 +89,10 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenSUSE Tumbleweed in PRoot.
+# Entrypoint for Manjaro Linux in PRoot.
 # Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-exec /bin/bash -l
+exec /bin/sh -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
@@ -101,17 +100,17 @@ chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
 # ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
 mkdir -p "$DISTRO_ROOTFS/.nh"
 cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
-NH_SHELL=/bin/bash
+NH_SHELL=/bin/sh
 NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=zypper
+NH_PKG=pacman
 NH_LIBC=glibc
 NH_INTEGRATION=minimal
 MANIFEST_EOF
 
-cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
+cat <<MARKER_EOF > "$DISTRO_ROOTFS/.docker_image"
 image=local-script
 pulled_at=$(date +%s)
 source=local-script

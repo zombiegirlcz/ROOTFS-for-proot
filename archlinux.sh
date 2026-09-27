@@ -9,17 +9,17 @@ DISTRO_ICON="🏹"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/archlinux/current/amd64/default/20260917_04%3A18/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="2c43bb6900bd035928547bb6169c89c079f9414d6d61e6a448d5013be336c0a0"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/archlinux/current/amd64/default/20260924_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="1756fbb0b73b11c8fd66c83aa33a8c059ca9d3f5fe87b3be5eb0bff4f34160c9"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20260917_04%3A18/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="082fbd22567aa887fc902f0900964e8c68b7222cf49ac9e7c9552a87e90f6de1"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/archlinux/current/arm64/default/20260924_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="6dae34ee18f6f74d3abe7f754ebcc078bae3f8e587c0d349fea5675f2d0a74aa"
 
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/archlinux/current/loong64/default/20260917_04%3A18/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="a6c9f2cc04445273eb13a1ee4d7243fa43045b5e114d9dc8f5ecd716959c4230"
+TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/archlinux/current/loong64/default/20260924_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['loong64']="e12676d87bc2bb0e9f973ecc1784a20498d2999772ebadf53c675a43f8fc36e2"
 
-TARBALL_URL['riscv64']="https://images.linuxcontainers.org/images/archlinux/current/riscv64/default/20260917_04%3A18/rootfs.tar.xz"
-TARBALL_SHA256['riscv64']="1d248b62bc21041f8a34430c5049b70226db2e413963ee94a0a5463ea76b95b0"
+TARBALL_URL['riscv64']="https://images.linuxcontainers.org/images/archlinux/current/riscv64/default/20260924_04%3A18/rootfs.tar.xz"
+TARBALL_SHA256['riscv64']="2d643cb8a319a0a22b8818be60c80c3cf2095dfba696ddd69c257a0bce67d0d5"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -96,20 +96,26 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for Arch Linux in PRoot
-
+# Entrypoint for Arch Linux in PRoot.
+# Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-if [ -f /bootstrap.sh ] && [ ! -f /bootstrap.done ]; then
-    echo "[*] Running first-boot bootstrap..."
-    sh /bootstrap.sh
-    touch /bootstrap.done
-fi
-
-exec /bin/bash --login
+exec /bin/bash -l
 ENTRYPOINT_EOF
 
 chmod +x "$DISTRO_ROOTFS/root/entrypoint.sh"
+
+# ── MANIFEST: jak rootfs spustit (čte appka + boot, viz AGENTS.md) ──
+mkdir -p "$DISTRO_ROOTFS/.nh"
+cat <<'MANIFEST_EOF' > "$DISTRO_ROOTFS/.nh/manifest"
+NH_SHELL=/bin/bash
+NH_ENTRYPOINT=/root/entrypoint.sh
+NH_BOOTSTRAP=/bootstrap.sh
+NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+NH_WORKDIR=/root
+NH_PKG=pacman
+NH_LIBC=glibc
+NH_INTEGRATION=minimal
+MANIFEST_EOF
 
 cat <<'MARKER_EOF' > "$DISTRO_ROOTFS/.docker_image"
 image=local-script

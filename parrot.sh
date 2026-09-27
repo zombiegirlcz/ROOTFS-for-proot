@@ -1,20 +1,27 @@
 #!/bin/bash
-# Distribution plug-in for OpenSUSE Tumbleweed
-# Auto-generated on 2026-09-01T22:15:00Z
+# Distribution plug-in for Parrot Security OS
+# Auto-generated on 2026-09-14T21:55:00Z
 
-DISTRO_NAME="OpenSUSE Tumbleweed"
-DISTRO_COMMENT="OpenSUSE official LXC rootfs"
-DISTRO_ICON="🦎"
+DISTRO_NAME="Parrot Security OS 6.x"
+DISTRO_COMMENT="Parrot Security OS official rootfs from deb.parrot.sh"
+DISTRO_ICON="🦜"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/amd64/default/20260927_04%3A20/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8a836b52c0fb2c2a5d084c6a7871c9f9ff14c6928a7dbf1e45a2154fd296c779"
+TARBALL_URL['aarch64']="https://deb.parrot.sh/parrot/iso/latest/parrot-arm64.tar.xz"
+TARBALL_SHA256['aarch64']="8a486c8635918de6cebc3b339265c4cea73cb9d73f709d56d98e487769f78582"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/opensuse/tumbleweed/arm64/default/20260927_04%3A27/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="be6887da22eb2e3037610b0e3404a507658e5a91d1a864e6edef242a38739b6e"
+TARBALL_URL['arm']="https://deb.parrot.sh/parrot/iso/latest/parrot-armhf.tar.xz"
+TARBALL_SHA256['arm']="33caf4c043dae5655402c48fc9dbba1e216e5bc3a42d6a6f73a7cce615f1ddb5"
 
+TARBALL_URL['x86_64']="https://deb.parrot.sh/parrot/iso/latest/parrot-amd64.tar.xz"
+TARBALL_SHA256['x86_64']="41e17c1b69b0dc04dec509180603932fcce57a4eb56a0ccb394075fc48a5c167"
+
+TARBALL_URL['riscv64']="https://deb.parrot.sh/parrot/iso/latest/parrot-riscv64.tar.xz"
+TARBALL_SHA256['riscv64']="9a265775b0ac6fe551e63e8d95f93990e0802d2fc56ed011fbbdfbb100b3dcca"
+
+# Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
 
@@ -42,16 +49,16 @@ fi
 echo "Extracting rootfs..."
 case "$TMP_TARBALL" in
     *.tar.xz|*.txz)
-        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
+        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1 || true
         ;;
     *.tar.bz2|*.tbz2)
-        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
+        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1 || true
         ;;
     *.tar.gz|*.tgz)
-        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
+        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1 || true
         ;;
     *.tar)
-        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
+        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1 || true
         ;;
     *)
         echo "ERROR: Unknown archive format: $TMP_TARBALL" >&2
@@ -71,18 +78,19 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. zypper --non-interactive refresh && zypper --non-interactive update
+#   1. apt-get update && apt-get upgrade -y
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
 
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export DEBIAN_FRONTEND=noninteractive
 
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-zypper --non-interactive refresh && zypper --non-interactive update
+apt-get update && apt-get upgrade -y
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -90,7 +98,7 @@ chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
 mkdir -p "$DISTRO_ROOTFS/root"
 cat <<'ENTRYPOINT_EOF' > "$DISTRO_ROOTFS/root/entrypoint.sh"
 #!/bin/sh
-# Entrypoint for OpenSUSE Tumbleweed in PRoot.
+# Entrypoint for Parrot Security OS 6.x in PRoot.
 # Bootstrap nespouštět — boot ho pustí jednou podle NH_BOOTSTRAP v manifestu.
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 exec /bin/bash -l
@@ -106,7 +114,7 @@ NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=zypper
+NH_PKG=apt
 NH_LIBC=glibc
 NH_INTEGRATION=minimal
 MANIFEST_EOF
