@@ -15,13 +15,13 @@ declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
 TARBALL_URL['aarch64']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/aarch64/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="0291f4bfeac1f9f5d145cd56fa7755bfb8f9bb8d332573ad8a01f38519a50c02"
+TARBALL_SHA256['aarch64']="fd3d48b483e5655cd115b205d849cd278a5474609458ba295b629c199dfc0cca"
 
 TARBALL_URL['arm']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/armv7hl/rootfs.tar.xz"
-TARBALL_SHA256['arm']="f56548800aa3d81fbbf2f3e05821b3236b7361a0faca5ae2325ab6967cbb2ee3"
+TARBALL_SHA256['arm']="da1b14ad1e46e219c55d8a4a8c10b7d4a25b061ae6f38d40c129fe9f6fedead2"
 
 TARBALL_URL['x86_64']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/x86_64/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="5c620e776bf1a97779b9a311e840bb0afb4ab486745d958e64c0539f72a2b2ef"
+TARBALL_SHA256['x86_64']="c17201f9f019174dce7d8cfdc8b6f13a58f525de24085827af64d3be38ebdaf7"
 
 # Detect best URL for current arch
 SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
@@ -99,7 +99,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache || urpmi.update -a || true
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"

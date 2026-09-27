@@ -9,11 +9,11 @@ DISTRO_ICON="🔴"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/oracle/9/amd64/default/20260922_07%3A46/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="888fda719a03515db92977aaa134eaccef6913e7b4343d7898ed5a6de2daafcc"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/oracle/9/amd64/default/20260927_07%3A46/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="4e1ba640b314ec8a0e572754ae6f541998d8db2afda968ceb0585b7b69f523dc"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/oracle/9/arm64/default/20260922_08%3A09/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="e59ac85bd3c7a7596f54fc4b030afa7dca8ba230d502e30dbdfdf041eecfd371"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/oracle/9/arm64/default/20260927_08%3A03/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="f1b88d90ae70d2c73fc89cdadd5c52fb1283c9a905458d61c4258d0268fc6f38"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
