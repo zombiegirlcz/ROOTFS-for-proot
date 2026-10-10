@@ -9,14 +9,14 @@ DISTRO_ICON="🎷"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20261006_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="8fcb42c6449e791733f36d549e4f49faded1947ea913db3ac300066ed91025e3"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/gentoo/current/amd64/openrc/20261010_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="a142bbf1b12f8d8f1d2ae295137b665c5e67b0f71d64a496452bac193a1eadff"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20261006_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="617c49a2d2cb310ed78d702b14cfcd49b98181fce21a55e4646c2332dc81b173"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/gentoo/current/arm64/openrc/20261010_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="20f0ccfd053324425744b3c354eb69d57f223591a1df02b71517f72318a9828c"
 
-TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20261006_16%3A07/rootfs.tar.xz"
-TARBALL_SHA256['loong64']="411d137abdb6d4e226adcb1a6f68ff1fb143575578d13954966629b2e9af7b1b"
+TARBALL_URL['loong64']="https://images.linuxcontainers.org/images/gentoo/current/loong64/openrc/20261010_16%3A07/rootfs.tar.xz"
+TARBALL_SHA256['loong64']="3386ba55a9299603d92b248c3fc866286c73efa0bfaccf35976890e38d1e3002"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -85,7 +85,8 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-emerge-webrsync
+mkdir -p /var/db/repos/gentoo
+emerge-webrsync || true
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"

@@ -9,11 +9,11 @@ DISTRO_ICON="🧢"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20261006_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="0d86f2ecf57a6fd6899e288dc8850e964b84ebb01aaf2351e278d6529f3940e0"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/fedora/43/amd64/default/20261010_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="08eebb9e978a049d09327b8512d61c84cf8459a3e633be27b61e540459c2c773"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20261006_20%3A33/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="3ca85272639564a9eace760fcc4c0b5f73474d86bf05230d7a419169ea90d763"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/fedora/43/arm64/default/20261010_20%3A33/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="8bbef3f09dd7b62b21202a9364a73f4856bdfc519e21dd3d3b5e5db06d16ae0f"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"

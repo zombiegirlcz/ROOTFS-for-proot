@@ -9,11 +9,11 @@ DISTRO_ICON="🛡️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261006_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="161f53a0a66140d39a0bdc99b8ea06fe854a902eddf09947131eef2dddabd4d4"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261010_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="b0adf7fc6c8bab1443b9a9e9b5fbb02d1fced6995910adeff27c6903680ab3a3"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261006_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="39c92ba32f9c2a044d91082db5a933f270454ae950b211dc0e4e200cec5fef82"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261010_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="a67b9237a994989f6f062915bffdb644c15005f95be58cf0d7fb08941d503b22"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
