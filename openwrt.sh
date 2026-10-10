@@ -9,11 +9,11 @@ DISTRO_ICON="🌐"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20261006_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="7069107cce20e865f87b4c572f42f530fc04a2e7aa1182047dc43e357479e4a8"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20261010_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="c8793bbc598f7b1327d45849456447ae6c250def81f5809f71377a50eb0aadc4"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261006_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="e71ba05738c822d35f3937e06fed1ba70f0b9e637103aa4125386553714f6add"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261010_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="75ba1c574a7c4b3e45082079a2f2bd28fae78a9edcdaab32f1e372a215bfa653"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -71,7 +71,7 @@ cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 # ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
 # POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. opkg update
+#   1. apk update
 #   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
 # LIMITATIONS / KNOWN ISSUES:
 #   - PRoot syscall limitations for unprivileged containers.
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-opkg update
+apk update || true
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
@@ -106,7 +106,7 @@ NH_ENTRYPOINT=/root/entrypoint.sh
 NH_BOOTSTRAP=/bootstrap.sh
 NH_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NH_WORKDIR=/root
-NH_PKG=opkg
+NH_PKG=apk
 NH_LIBC=musl
 NH_INTEGRATION=minimal
 MANIFEST_EOF
