@@ -9,14 +9,14 @@ DISTRO_ICON="🍥"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/ubuntu/jammy/arm64/default/20261007_07%3A42/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="f684da43b902d5b16fd3573eda14c50a6874309dd2f8522a2a572a0c7ab34669"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/ubuntu/jammy/arm64/default/20261011_07%3A42/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="f18103c5630f755dceb3a87a11208d26a9fa3cdfeb3f618ac255009e69a726cd"
 
-TARBALL_URL['arm']="https://images.linuxcontainers.org/images/ubuntu/jammy/armhf/default/20261007_07%3A42/rootfs.tar.xz"
-TARBALL_SHA256['arm']="0f9ab8681616ca084177a01359b336d06e3be9753092348b5b923c8b0f545adf"
+TARBALL_URL['arm']="https://images.linuxcontainers.org/images/ubuntu/jammy/armhf/default/20261011_07%3A42/rootfs.tar.xz"
+TARBALL_SHA256['arm']="9692a611f4cb3c2ab04a0cc6107a66a44c71a6fbf0d22e033d7a0c0f64016d47"
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/ubuntu/jammy/amd64/default/20261007_07%3A42/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="b27704951fea4d94ff3657cad2affde984f9c0e380dbdadc4ae4864a584f0e69"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/ubuntu/jammy/amd64/default/20261011_07%3A42/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="11b89f76cc90ad7e95dbde8d025cd2baa50d35246322f5085a7d9b119441c1eb"
 
 # ── Manual use only: the app never runs the code below ──────────────────────
 set -euo pipefail
