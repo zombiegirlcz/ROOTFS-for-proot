@@ -9,11 +9,11 @@ DISTRO_ICON="🛡️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261013_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="716ab36e0d3b600a5fb1f8d9846d4fe4ff9ad0f91eb5c7eb9df3a46e90a8a2da"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261014_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="3de01716b90b7134b86124f461f739bf75cb088da1bd06ceba399a949041b952"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261013_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="bfbb27d68e08ca333650fd58935dee93966bab39edf1f05cf0b0a874e6bf22ab"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261014_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="ca306a9eb6fc97c1a3c31c3687745014aa651c0ff303b0bd4554c2d355be04ca"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -40,25 +40,7 @@ if [ -n "$TARBALL_SHA256" ]; then
 fi
 
 echo "Extracting rootfs..."
-case "$TMP_TARBALL" in
-    *.tar.xz|*.txz)
-        tar -xJf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
-        ;;
-    *.tar.bz2|*.tbz2)
-        tar -xjf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
-        ;;
-    *.tar.gz|*.tgz)
-        tar -xzf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
-        ;;
-    *.tar)
-        tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" --strip-components=1
-        ;;
-    *)
-        echo "ERROR: Unknown archive format: $TMP_TARBALL" >&2
-        rm -f "$TMP_TARBALL"
-        exit 1
-        ;;
-esac
+tar -xaf "$TMP_TARBALL" -C "$DISTRO_ROOTFS" 2>/dev/null || tar -xf "$TMP_TARBALL" -C "$DISTRO_ROOTFS"
 
 rm -f "$TMP_TARBALL"
 
