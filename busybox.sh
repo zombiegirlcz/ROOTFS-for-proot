@@ -9,11 +9,11 @@ DISTRO_ICON="📦"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/busybox/1.38.0/amd64/default/20261011_06%3A00/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="5dca72bf06202217bddba0a6cddd90548173a44478ef558fa54c7eecc8a7282f"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/busybox/1.38.0/amd64/default/20261014_06%3A00/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="1cdefe993af21b554e82a125e1656d73bfe83a7612b54b0844a0f42c2fb1410b"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/busybox/1.38.0/arm64/default/20261011_06%3A00/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="22fc431f93ce2184cde277023f961f2595d33002b35a451f869c4618329b2c12"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/busybox/1.38.0/arm64/default/20261014_06%3A00/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="e619e260fd4f2f2f0d0bf060a237eab269ee29c714dbff551719ccc5735cc17f"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

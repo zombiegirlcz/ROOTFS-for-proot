@@ -9,11 +9,11 @@ DISTRO_ICON="🛡️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261012_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="ee879bbc6c5ad0785e531e5e30aea3450f1aab9c1b74b06d811760a8d1eced66"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openeuler/24.03/amd64/default/20261013_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="716ab36e0d3b600a5fb1f8d9846d4fe4ff9ad0f91eb5c7eb9df3a46e90a8a2da"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261012_15%3A48/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="d6617c4dc307590b36a02a04973326bdb20102ea4bb8c016f5ca1d9c8af06b90"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openeuler/24.03/arm64/default/20261013_15%3A48/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="bfbb27d68e08ca333650fd58935dee93966bab39edf1f05cf0b0a874e6bf22ab"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
