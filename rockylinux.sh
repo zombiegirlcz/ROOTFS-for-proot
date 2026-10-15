@@ -9,11 +9,11 @@ DISTRO_ICON="🏔️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/rockylinux/9/amd64/default/20261011_02%3A25/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="2d06eb0fc9b76e30f13f0ab6c738727f1dd0f05042134bf3abb2d33899b3964e"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/rockylinux/9/amd64/default/20261015_02%3A06/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="eb1c608ae81a615fd40c24ab134aad426a039385eb391b6d5b4b918fb8e555dd"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/rockylinux/9/arm64/default/20261011_02%3A06/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="299ea02fd2f0c0c695b16be1c7366c85931f0129f7f0acfdeb9edae0faac319c"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/rockylinux/9/arm64/default/20261015_02%3A06/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="9f70fa05ba42f76b78f3ad0c15faf53c227912bf098e2f598fde1f3decf245b3"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
