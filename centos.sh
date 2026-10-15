@@ -9,11 +9,11 @@ DISTRO_ICON="💯"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/centos/9-Stream/amd64/default/20261011_07%3A08/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="239230d5994e34225c20cc84736076c5e0913578c2fda80c7984dc89e4047122"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/centos/9-Stream/amd64/default/20261015_07%3A08/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="fe649a1e65ad8fc92a52d62f3dd079621a55252742abfed7d0654952c0fa6d05"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/centos/9-Stream/arm64/default/20261011_07%3A08/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="ca6392d7f4807c09b704a2c63a9c4fcf335152c88e1b540e8186ce73e5959d28"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/centos/9-Stream/arm64/default/20261015_07%3A08/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="bd07c59047e54c2e5d5175973d1725a9f4934e4ee2d6e758967cf02232a6ec43"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -82,7 +82,7 @@ if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-dnf update -y
+dnf -y makecache
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
