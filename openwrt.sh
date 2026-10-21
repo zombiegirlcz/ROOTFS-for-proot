@@ -9,11 +9,11 @@ DISTRO_ICON="🌐"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20261021_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="efa25b4d82a7b1ba1f53fc61999b96a527164b42ae4937b4ab7e6cdba4220fd8"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20261019_12%3A40/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="ad974b67f34f196a20ff71f837597c82d9640a68781370f9b5d6f53443394da4"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261021_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="66b46c5035a98c40bd6f5317196ce4c69b6ee59d1019fb468a53458377d014af"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261019_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="b0e41e510defa714676e9491f5bd20a2c48a5733e595e5272cb467eda9d025ff"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
