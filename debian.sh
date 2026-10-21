@@ -9,11 +9,11 @@ DISTRO_ICON="🌀"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/bookworm/arm64/default/20261018_11%3A44/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="b54097c7c8f7a3af5fbe0c0259c87e72c6d1572ee0793e27e8bb94f88a1d5f97"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/bookworm/arm64/default/20261021_06%3A02/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="5f626ce3cb8443b846aac19fb822212490098856815b4eb1952cd0d6a55abc23"
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/bookworm/amd64/default/20261018_05%3A24/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="6254370e530d153afae23b052cbd2c6424d08be1f5c3ea5b1606c6c2c6718740"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/bookworm/amd64/default/20261021_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="d1b348aef1b7bc02643beae4807ec4fc16f275a3b0d0f5586afd564ff75928a9"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
