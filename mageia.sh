@@ -15,13 +15,13 @@ declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
 TARBALL_URL['aarch64']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/aarch64/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="fd3d48b483e5655cd115b205d849cd278a5474609458ba295b629c199dfc0cca"
+TARBALL_SHA256['aarch64']="77d04ef9e9f2e2d08fc81b96b8957ed430ef60d8ff6e7aa1ee19d33920423179"
 
 TARBALL_URL['arm']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/armv7hl/rootfs.tar.xz"
-TARBALL_SHA256['arm']="da1b14ad1e46e219c55d8a4a8c10b7d4a25b061ae6f38d40c129fe9f6fedead2"
+TARBALL_SHA256['arm']="594e81ae2e30c602f2bf4d29fea0a81d3c73d33f9c03f5d57e16ef4a157617a8"
 
 TARBALL_URL['x86_64']="https://raw.githubusercontent.com/juanluisbaptiste/docker-brew-mageia/dist/dist/9/x86_64/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="c17201f9f019174dce7d8cfdc8b6f13a58f525de24085827af64d3be38ebdaf7"
+TARBALL_SHA256['x86_64']="0a9b330e6986b8931f0233f98fdb9a2966fe247f29c7fc4b6b408b465a95e250"
 
 # Detect best URL for current arch
 SELECTED_ARCH="${DISTRO_ARCH:-aarch64}"
