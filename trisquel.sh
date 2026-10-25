@@ -3,16 +3,16 @@
 # Auto-generated on 2026-09-22T00:00:00Z
 
 DISTRO_NAME="Trisquel GNU/Linux 11.0.1 (Aramo)"
-DISTRO_COMMENT="Trisquel official base rootfs from cdimage.trisquel.info"
+DISTRO_COMMENT="Trisquel official base rootfs from mirror.fsf.org"
 DISTRO_ICON="🛡️"
 
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://cdimage.trisquel.org/trisquel-images/trisquel-base_11.0.1_arm64.tar.bz2"
+TARBALL_URL['aarch64']="https://mirror.fsf.org/trisquel-images/trisquel-base_11.0.1_arm64.tar.bz2"
 TARBALL_SHA256['aarch64']="b4427526326ba33ad0f7766c5e43772fdaa80511b61369b53ec36d7b148a0f15"
 
-TARBALL_URL['arm']="https://cdimage.trisquel.org/trisquel-images/trisquel-base_11.0.1_armhf.tar.bz2"
+TARBALL_URL['arm']="https://mirror.fsf.org/trisquel-images/trisquel-base_11.0.1_armhf.tar.bz2"
 TARBALL_SHA256['arm']="cb85ba447c6ff842b153fc4f9f5512fd202b73d557ffaffe4c0a907755b4d4e5"
 
 # Detect best URL for current arch
@@ -83,6 +83,11 @@ export DEBIAN_FRONTEND=noninteractive
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
+
+rm -rf /var/lib/apt/lists/*
+chmod -R 755 /etc/apt/trusted.gpg.d 2>/dev/null || true
+chmod 644 /etc/apt/trusted.gpg.d/* 2>/dev/null || true
+sed -i -E 's|http://archive\.trisquel\.(info|org)/trisquel|http://mirror.fsf.org/trisquel|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list 2>/dev/null || true
 
 apt-get update && apt-get upgrade -y
 BOOTSTRAP_EOF
