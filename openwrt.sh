@@ -12,8 +12,8 @@ declare -A TARBALL_SHA256
 TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/openwrt/25.12/amd64/default/20261022_12%3A08/rootfs.tar.xz"
 TARBALL_SHA256['x86_64']="c6618343fc5f2f29a84724417b5b512742b2f9afffad16ae9c082306d0e48999"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261019_11%3A57/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="b0e41e510defa714676e9491f5bd20a2c48a5733e595e5272cb467eda9d025ff"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/openwrt/25.12/arm64/default/20261022_11%3A57/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="666ca5f65d9f36b8b097c30306c795eac77a0317bc72df2bbab24bf8903c2f12"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
