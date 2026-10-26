@@ -9,11 +9,11 @@ DISTRO_ICON="🐉"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/kali/current/amd64/default/20261020_17%3A14/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="ea76457a41d58b02ed177d21738bce6e0bfe0e68415559bee2654121d1aad864"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/kali/current/amd64/default/20261021_17%3A14/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="48a54ec258351ef9652f26496a1e7b06ee52d68fb98da173fa22ff4eb757d696"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/kali/current/arm64/default/20261020_17%3A14/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="4f1b9762223c1b31b58775a0a6e0bf757edaba3d164cd4d35f1e4e118b1181de"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/kali/current/arm64/default/20261021_17%3A14/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="1c29eccf4de710a7c84d2c2593f157fd6fdf780d6a51a0b43195ae5eaa9fcaf5"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
@@ -61,29 +61,21 @@ case "$TMP_TARBALL" in
 esac
 
 rm -f "$TMP_TARBALL"
+chmod -R u+w "$DISTRO_ROOTFS" 2>/dev/null || true
 
 cat <<'BOOTSTRAP_EOF' > "$DISTRO_ROOTFS/bootstrap.sh"
 #!/bin/sh
-#  =============================================================================
-# RUNTIME & BOOTSTRAP CONFIGURATION
-# ==============================================================================
-# ENTRYPOINT: /bin/sh
-# ENVIRONMENT: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-# SPECIAL MOUNTS / FLAGS: --link2symlink, custom /proc, /dev, /sys bind mounts
-# POST-INSTALL HOOKS / BOOTSTRAP COMMANDS:
-#   1. apt-get update && apt-get upgrade -y
-#   2. setup DNS /etc/resolv.conf (echo "nameserver 1.1.1.1" > /etc/resolv.conf)
-# LIMITATIONS / KNOWN ISSUES:
-#   - PRoot syscall limitations for unprivileged containers.
-
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export DEBIAN_FRONTEND=noninteractive
+
+chmod -R u+w /var /tmp /etc /usr /root 2>/dev/null || true
 
 if [ ! -s /etc/resolv.conf ]; then
     echo "nameserver 1.1.1.1" > /etc/resolv.conf
 fi
 
-apt-get update && apt-get upgrade -y
+rm -rf /var/lib/apt/lists/*
+apt-get update
 BOOTSTRAP_EOF
 
 chmod +x "$DISTRO_ROOTFS/bootstrap.sh"
