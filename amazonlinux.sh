@@ -9,8 +9,8 @@ DISTRO_ICON="📦"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20261022_05%3A09/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="c97a27181e03c0eddb32792ffe0f87bed54d99aa2d35a67aade35e55a9663cc6"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/amazonlinux/2023/amd64/default/20261029_05%3A09/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="2ef5ee0bbff25bf13078a079dac294b9ef619a70df9809563f6def1da0d01ed8"
 
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
