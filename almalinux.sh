@@ -9,11 +9,11 @@ DISTRO_ICON="🅰️"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/almalinux/9/amd64/default/20261020_23%3A08/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="69007d4d40a1b8ec81446f029eaa7ce6a0734ea59c5314e90c65e4549fed1fba"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/almalinux/9/amd64/default/20261028_23%3A08/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="a236c133f126e2893916eb99a88a9357ec2ba723e26157c474b2f17fdd90b142"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/almalinux/9/arm64/default/20261020_23%3A08/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="577c7902de14d22a84025ed84095e02295b668d931cdecd4e0df7d7c383e4f0f"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/almalinux/9/arm64/default/20261028_23%3A08/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="78ebf8005f77b4369cfc7b9849d64b4003b89aa88b2d18c54b8de3727e52d736"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"

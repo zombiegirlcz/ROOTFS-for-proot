@@ -9,11 +9,11 @@ DISTRO_ICON="🌀"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/trixie/arm64/default/20261021_06%3A02/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="68a3e0f809fb3fbd6684877c97612c01b144902df47adfabef326f97dd0fdba1"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/trixie/arm64/default/20261029_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="c89c17254315a4f11175b1ea0588d49ff6a0c4e42beeabbd6dfcf4fe672566d1"
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/trixie/amd64/default/20261021_05%3A24/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="f2afb0bd814a64ba7adce2d3fa817639bcadd9cc79d36c278f22e0bbbc0b041c"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/trixie/amd64/default/20261029_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="bf8f827c040980408fb7dec4b87d138a28ee9d8918203c553a91d45bf79c0b8d"
 
 # ── Manual use only: the app never runs the code below ──────────────────────
 set -euo pipefail
