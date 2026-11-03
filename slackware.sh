@@ -9,8 +9,8 @@ DISTRO_ICON="🦅"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/slackware/15.0/amd64/default/20261028_23%3A08/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="d9e8359d4d00588e9f03257b6067751ec7f9e00312257c8929815b9d684893fe"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/slackware/15.0/amd64/default/20261102_23%3A08/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="3541b92f7ca54521bb4c02791c3a64ad5536b23777cf490dd88cdfca4abaa700"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['x86_64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
