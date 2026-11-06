@@ -9,14 +9,14 @@ DISTRO_ICON="🐉"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://repo.chimera-linux.org/live/latest/chimera-linux-aarch64-ROOTFS-20251220-bootstrap.tar.gz"
-TARBALL_SHA256['aarch64']="65f738dad84c8d81dc0e17b686a6e1eaf88820d7555ea920ca906f83a7e962b3"
+TARBALL_URL['aarch64']="https://repo.chimera-linux.org/live/latest/chimera-linux-aarch64-ROOTFS-20261103-bootstrap.tar.gz"
+TARBALL_SHA256['aarch64']="2a8fc92d4cab69469ee759e662801ac783f9f26ed8ef6e52578ab2a9d31901a8"
 
-TARBALL_URL['x86_64']="https://repo.chimera-linux.org/live/latest/chimera-linux-x86_64-ROOTFS-20251220-bootstrap.tar.gz"
-TARBALL_SHA256['x86_64']="d497b90e75ab739c7d60bd082a3e0f68c2a63f7ee472005a8f9f2a42ba367be7"
+TARBALL_URL['x86_64']="https://repo.chimera-linux.org/live/latest/chimera-linux-x86_64-ROOTFS-20261103-bootstrap.tar.gz"
+TARBALL_SHA256['x86_64']="acbeed8fda8409551cf9ad835a79488140d387482d7cd00436e51d8902895a25"
 
-TARBALL_URL['riscv64']="https://repo.chimera-linux.org/live/latest/chimera-linux-riscv64-ROOTFS-20251220-bootstrap.tar.gz"
-TARBALL_SHA256['riscv64']="47595385d865b2a66c180b4f6efe585e9e03e4950108d818e85b2983578d4183"
+TARBALL_URL['riscv64']="https://repo.chimera-linux.org/live/latest/chimera-linux-riscv64-ROOTFS-20261103-bootstrap.tar.gz"
+TARBALL_SHA256['riscv64']="40682d2da9f7fea6aa4ad9249f88883401064da5c0de9f614c0074d0a03f5fb9"
 
 # Detect best URL for current arch
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
