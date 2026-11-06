@@ -9,11 +9,11 @@ DISTRO_ICON="💯"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/centos/9-Stream/amd64/default/20261029_07%3A40/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="5a58f5a0c831accfcdb0a890dd3b60c68ff4464a3c855ef21e3f4463dbe16fd1"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/centos/9-Stream/amd64/default/20261104_10%3A57/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="8138417b536683ef5c0c5c81e4f826c1b5b993bb1701d9d05a7bd0e3330f61c0"
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/centos/9-Stream/arm64/default/20261029_07%3A08/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="b861cf22b2ac414e1253c420f4319c26504caf48cf279e7460449b973c1b56be"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/centos/9-Stream/arm64/default/20261103_08%3A14/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="775f38abed99ea124f73b66c4941c19636904f2019e96be1ed496e42c5fb863b"
 
 TARBALL_URL="${TARBALL_URL[$DISTRO_ARCH]:-${TARBALL_URL['aarch64']}}"
 TARBALL_SHA256="${TARBALL_SHA256[$DISTRO_ARCH]:-}"
