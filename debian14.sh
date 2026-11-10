@@ -9,14 +9,14 @@ DISTRO_ICON="🌀"
 declare -A TARBALL_URL
 declare -A TARBALL_SHA256
 
-TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/forky/arm64/default/20261105_05%3A24/rootfs.tar.xz"
-TARBALL_SHA256['aarch64']="1671ef7bb489f9973d11f45005dcb9590991c71f77509d6c70fb4c53dc4fc910"
+TARBALL_URL['aarch64']="https://images.linuxcontainers.org/images/debian/forky/arm64/default/20261109_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['aarch64']="5075b1039595adb6895d94b1112d265a50238d9c107bd88470893192cba3b674"
 
-TARBALL_URL['arm']="https://images.linuxcontainers.org/images/debian/forky/armhf/default/20261105_05%3A24/rootfs.tar.xz"
-TARBALL_SHA256['arm']="354203c4349d8c4db6dd4e80b70e7a4d88ac74980c0daf046700fb465def05a3"
+TARBALL_URL['arm']="https://images.linuxcontainers.org/images/debian/forky/armhf/default/20261109_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['arm']="2cff014d17ad6435bea77f70c71a8160fa05692db1ef6d4126b49b227264a6cd"
 
-TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/forky/amd64/default/20261105_05%3A24/rootfs.tar.xz"
-TARBALL_SHA256['x86_64']="5eb18ebf7783115376297d554127c9a22fbee9649d1d6060d77873990d7cdcba"
+TARBALL_URL['x86_64']="https://images.linuxcontainers.org/images/debian/forky/amd64/default/20261109_05%3A24/rootfs.tar.xz"
+TARBALL_SHA256['x86_64']="7750c6fd29b25f42bad863199814348cabef44ad4ad0928503446cebe403365a"
 
 # ── Manual use only: the app never runs the code below ──────────────────────
 set -euo pipefail
